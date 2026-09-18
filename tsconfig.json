@@ -17,6 +17,12 @@
     },
     {
       "path": "./apps/web"
+    },
+    {
+      "path": "./apps/catalog-e2e"
+    },
+    {
+      "path": "./apps/catalog"
     }
   ],
   "compilerOptions": {}
