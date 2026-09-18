@@ -20,6 +20,9 @@
     },
     {
       "path": "./apps/catalog"
+    },
+    {
+      "path": "./libs/contracts"
     }
   ],
   "compilerOptions": {}

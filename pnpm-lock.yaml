@@ -177,6 +177,9 @@ importers:
       jsdom:
         specifier: ^27.1.0
         version: 27.4.0
+      jsonc-eslint-parser:
+        specifier: ^2.1.0
+        version: 2.4.2
       nx:
         specifier: 23.2.0
         version: 23.2.0(@swc-node/register@1.11.1(@swc/core@1.15.8(@swc/helpers@0.5.18))(@swc/types@0.1.28)(typescript@6.0.3))(@swc/core@1.15.8(@swc/helpers@0.5.18))
@@ -221,31 +224,6 @@ importers:
 
   apps/admin-e2e: {}
 
-  apps/api:
-    dependencies:
-      '@nestjs/common':
-        specifier: ^11.0.0
-        version: 11.2.5(reflect-metadata@0.2.2)(rxjs@7.8.1)
-      '@nestjs/core':
-        specifier: ^11.0.0
-        version: 11.2.5(@nestjs/common@11.2.5(reflect-metadata@0.2.2)(rxjs@7.8.1))(@nestjs/platform-express@11.2.5)(reflect-metadata@0.2.2)(rxjs@7.8.1)
-      '@nestjs/platform-express':
-        specifier: ^11.0.0
-        version: 11.2.5(@nestjs/common@11.2.5(reflect-metadata@0.2.2)(rxjs@7.8.1))(@nestjs/core@11.2.5)
-      reflect-metadata:
-        specifier: ^0.2.0
-        version: 0.2.2
-      rxjs:
-        specifier: ^7.8.0
-        version: 7.8.1
-      tslib:
-        specifier: ^2.3.0
-        version: 2.8.1
-    devDependencies:
-      '@nestjs/testing':
-        specifier: ^11.0.0
-        version: 11.2.5(@nestjs/common@11.2.5(reflect-metadata@0.2.2)(rxjs@7.8.1))(@nestjs/core@11.2.5)(@nestjs/platform-express@11.2.5)
-
   apps/catalog:
     dependencies:
       '@nestjs/common':
@@ -286,6 +264,12 @@ importers:
         version: 19.3.0(react@19.3.0)
 
   apps/web-e2e: {}
+
+  libs/contracts:
+    dependencies:
+      tslib:
+        specifier: ^2.3.0
+        version: 2.8.1
 
 packages:
 
