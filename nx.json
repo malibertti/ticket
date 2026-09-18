@@ -104,6 +104,12 @@
         "style": "scss",
         "linter": "eslint"
       }
+    },
+    "@nx/next": {
+      "application": {
+        "style": "scss",
+        "linter": "eslint"
+      }
     }
   }
 }
