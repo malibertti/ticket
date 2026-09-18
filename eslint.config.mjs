@@ -22,9 +22,22 @@ export default [
           enforceBuildableLibDependency: true,
           allow: ['^.*/eslint(\\.base)?\\.config\\.[cm]?[jt]s$'],
           depConstraints: [
+            // {
+            //   sourceTag: '*',
+            //   onlyDependOnLibsWithTags: ['*'],
+            // },
+            { sourceTag: 'type:contract', onlyDependOnLibsWithTags: [] },
             {
-              sourceTag: '*',
-              onlyDependOnLibsWithTags: ['*'],
+              sourceTag: 'type:util',
+              onlyDependOnLibsWithTags: ['type:contract'],
+            },
+            {
+              sourceTag: 'type:service',
+              onlyDependOnLibsWithTags: ['type:contract', 'type:util'],
+            },
+            {
+              sourceTag: 'type:web',
+              onlyDependOnLibsWithTags: ['type:contract'],
             },
           ],
         },

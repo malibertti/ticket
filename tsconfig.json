@@ -23,6 +23,9 @@
     },
     {
       "path": "./libs/contracts"
+    },
+    {
+      "path": "./libs/config"
     }
   ],
   "compilerOptions": {}
