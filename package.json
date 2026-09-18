@@ -12,6 +12,7 @@
     "@nx/eslint-plugin": "23.2.0",
     "@nx/js": "23.2.0",
     "@nx/nest": "23.2.0",
+    "@nx/next": "23.2.0",
     "@nx/node": "23.2.0",
     "@nx/web": "23.2.0",
     "@nx/webpack": "23.2.0",
@@ -35,6 +36,9 @@
     "@nestjs/core": "^11.0.0",
     "@nestjs/platform-express": "^11.0.0",
     "axios": "^1.6.0",
+    "next": "~16.1.6",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
     "reflect-metadata": "^0.2.0",
     "rxjs": "^7.8.0"
   }
