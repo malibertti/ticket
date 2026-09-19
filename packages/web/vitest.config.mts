@@ -1,10 +1,10 @@
-import { defineConfig } from 'vitest/config';
 import react from '@vitejs/plugin-react';
 import { join } from 'node:path';
+import { defineConfig } from 'vitest/config';
 
 export default defineConfig(() => ({
   root: import.meta.dirname,
-  cacheDir: '../../node_modules/.vite/apps/web',
+  cacheDir: '../../node_modules/.vite/packages/web',
   plugins: [react()],
   resolve: {
     alias: {

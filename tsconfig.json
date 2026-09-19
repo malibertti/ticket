@@ -4,28 +4,28 @@
   "files": [],
   "references": [
     {
-      "path": "./apps/admin-e2e"
+      "path": "./packages/admin-e2e"
     },
     {
-      "path": "./apps/admin"
+      "path": "./packages/admin"
     },
     {
-      "path": "./apps/web-e2e"
+      "path": "./packages/web-e2e"
     },
     {
-      "path": "./apps/web"
+      "path": "./packages/web"
     },
     {
-      "path": "./apps/catalog-e2e"
+      "path": "./packages/catalog-e2e"
     },
     {
-      "path": "./apps/catalog"
+      "path": "./packages/catalog"
     },
     {
-      "path": "./libs/contracts"
+      "path": "./packages/contracts"
     },
     {
-      "path": "./libs/config"
+      "path": "./packages/config"
     }
   ],
   "compilerOptions": {}

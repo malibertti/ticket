@@ -6,7 +6,7 @@
     "tags": [
       "type:web"
     ],
-    "sourceRoot": "apps/web/src"
+    "sourceRoot": "packages/web/src"
   },
   "dependencies": {
     "next": "~16.1.6",

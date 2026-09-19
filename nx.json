@@ -89,7 +89,7 @@
       "options": {
         "targetName": "test"
       },
-      "exclude": ["apps/catalog-e2e/**/*"]
+      "exclude": ["packages/catalog-e2e/**/*"]
     }
   ],
   "analytics": false,

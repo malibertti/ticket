@@ -17,7 +17,7 @@
           "@org/catalog:serve"
         ],
         "options": {
-          "jestConfig": "apps/catalog-e2e/jest.config.cts",
+          "jestConfig": "packages/catalog-e2e/jest.config.cts",
           "passWithNoTests": true
         }
       }
