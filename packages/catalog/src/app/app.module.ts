@@ -1,19 +1,24 @@
 import { Module } from '@nestjs/common';
-import { env } from '@org/config';
-import { AppController } from './app.controller';
-import { AppService } from './app.service';
+import { ConfigModule } from '@nestjs/config';
+import { schema } from '../env';
+import { DbModule } from './db/db.module';
+import { EventsModule } from './events/events.module';
+import { VenuesModule } from './venues/venues.module';
 
 export const ENV = Symbol('ENV');
 
 @Module({
-  imports: [],
-  controllers: [AppController],
-  providers: [
-    AppService,
-    {
-      provide: ENV,
-      useValue: env,
-    },
+  imports: [
+    ConfigModule.forRoot({
+      isGlobal: true,
+      cache: true,
+      validationSchema: schema,
+    }),
+    DbModule,
+    EventsModule,
+    VenuesModule,
   ],
+  controllers: [],
+  providers: [],
 })
 export class AppModule {}

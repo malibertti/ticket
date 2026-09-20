@@ -1,3 +1,4 @@
+const { IgnorePlugin } = require('webpack');
 const { NxAppWebpackPlugin } = require('@nx/webpack/app-plugin');
 const { join } = require('path');
 
@@ -10,6 +11,7 @@ module.exports = {
     }),
   },
   plugins: [
+    new IgnorePlugin({ resourceRegExp: /^pg-native$/ }),
     new NxAppWebpackPlugin({
       target: 'node',
       compiler: 'tsc',

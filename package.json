@@ -2,7 +2,11 @@
   "name": "@org/source",
   "version": "0.0.0",
   "license": "MIT",
-  "scripts": {},
+  "scripts": {
+    "build": "nx run-many -t build --parallel=5",
+    "dev:web": "nx run-many -t dev --parallel=3 -p tag:type:web --tui=false",
+    "dev:service": "nx run-many -t serve --parallel=3 -p tag:type:service --tui=false"
+  },
   "private": true,
   "devDependencies": {
     "@eslint/js": "^9.8.0",

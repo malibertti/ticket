@@ -23,9 +23,6 @@
     },
     {
       "path": "./packages/contracts"
-    },
-    {
-      "path": "./packages/config"
     }
   ],
   "compilerOptions": {}
