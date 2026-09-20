@@ -9,7 +9,13 @@ export class ZodPipe<T> implements PipeTransform {
     const r = this.schema.safeParse(value);
 
     if (!r.success) {
-      throw new BadRequestException(r.error.issues);
+      throw new BadRequestException({
+        message: 'Validation failed',
+        errors: r.error.issues.map((i) => ({
+          path: i.path.join('.'),
+          message: i.message,
+        })),
+      });
     }
 
     return r.data;

@@ -1,7 +1,6 @@
 import {
   Controller,
   Get,
-  NotFoundException,
   Param,
   ParseUUIDPipe,
   Query,
@@ -21,6 +20,12 @@ export class VenuesController {
     return this.venues.getVenues(query);
   }
 
+  // @Get()
+  // @Version('2')
+  // getVenues2(@Query(new ZodPipe(pageQuery)) query: PageQuery) {
+  //   return ['hello', 'version', '2', query];
+  // }
+
   @Get(':id')
   getVenue(@Param('id', ParseUUIDPipe) id: string) {
     return this.venues.getVenue(id);
@@ -32,10 +37,7 @@ export class VenuesController {
     @Res({ passthrough: true }) res: Response,
   ) {
     const venue = await this.venues.getVenue(id);
-
-    if (!venue) {
-      throw new NotFoundException(`Venue ${id} not found`);
-    }
+    const seatMap = await this.venues.seatMap(id);
 
     res.set({
       'Cache-Control': 'public, max-age=3600, stale-while-revalidate=86400',
@@ -43,6 +45,6 @@ export class VenuesController {
       Vary: 'Accept-Encoding',
     });
 
-    return this.venues.seatMap(id);
+    return seatMap;
   }
 }

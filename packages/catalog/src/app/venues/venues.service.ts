@@ -29,7 +29,7 @@ export class VenuesService {
     const [row] = await this.db.select().from(venues).where(eq(venues.id, id));
 
     if (!row) {
-      throw new NotFoundException('Venue not found');
+      throw new NotFoundException(`Venue ${id} not found`);
     }
 
     return row;
