@@ -1,0 +1,24 @@
+{
+  "availability-zones:account=900881668509:region=us-east-1": [
+    "us-east-1a",
+    "us-east-1b",
+    "us-east-1c",
+    "us-east-1d",
+    "us-east-1e",
+    "us-east-1f"
+  ],
+  "cc-api-provider:account=900881668509:expectedMatchCount=exactly-one:propertiesToReturn.0=PrefixListId:propertyMatch.PrefixListName=com.amazonaws.global.cloudfront.origin-facing:region=us-east-1:typeName=AWS$:$:EC2$:$:PrefixList": [
+    {
+      "PrefixListId": "pl-3b927c52",
+      "Identifier": "pl-3b927c52"
+    }
+  ],
+  "hosted-zone:account=900881668509:domainName=admin.mattrc.dev:privateZone=false:region=us-east-1": {
+    "Id": "/hostedzone/Z08776971JM66PNGO7MXT",
+    "Name": "admin.mattrc.dev."
+  },
+  "hosted-zone:account=900881668509:domainName=api.mattrc.dev:privateZone=false:region=us-east-1": {
+    "Id": "/hostedzone/Z03541733DIIPKV6SMRDF",
+    "Name": "api.mattrc.dev."
+  }
+}

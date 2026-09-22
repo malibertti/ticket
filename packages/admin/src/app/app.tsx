@@ -1,40 +1,31 @@
-// Uncomment this line to use CSS modules
-// import styles from './app.module.scss';
-import NxWelcome from './nx-welcome';
-
-import { Route, Routes, Link } from 'react-router-dom';
+import { useAuth } from 'react-oidc-context';
+import { Link, Route, Routes } from 'react-router-dom';
+import styles from './app.module.scss';
+import { Home } from './Home';
+import { Nav } from './nav/nav';
 
 export function App() {
-  return (
-    <div>
-      <NxWelcome title="@org/admin" />
+  const auth = useAuth();
 
-      {/* START: routes */}
-      {/* These routes and navigation have been generated for you */}
-      {/* Feel free to move and update them to fit your needs */}
-      <br />
-      <hr />
-      <br />
-      <nav>
-        <ul>
-          <li>
-            <Link to="/">Home</Link>
-          </li>
-          <li>
-            <Link to="/page-2">Page 2</Link>
-          </li>
-        </ul>
-      </nav>
+  console.log(auth);
+
+  if (auth.isLoading) {
+    return <pre>LOADING...</pre>;
+  }
+
+  if (auth.error) {
+    return <pre>Auth error: {auth.error.message}</pre>;
+  }
+
+  if (!auth.isAuthenticated) {
+    return <button onClick={() => void auth.signinRedirect()}>Login</button>;
+  }
+
+  return (
+    <div className={styles.host}>
+      <Nav />
       <Routes>
-        <Route
-          path="/"
-          element={
-            <div>
-              This is the generated root route.{' '}
-              <Link to="/page-2">Click here for page 2.</Link>
-            </div>
-          }
-        />
+        <Route path="/" element={<Home />} />
         <Route
           path="/page-2"
           element={
@@ -44,7 +35,6 @@ export function App() {
           }
         />
       </Routes>
-      {/* END: routes */}
     </div>
   );
 }

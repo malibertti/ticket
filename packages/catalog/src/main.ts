@@ -1,8 +1,3 @@
-/**
- * This is not a production server yet!
- * This is only a minimal backend to get started.
- */
-
 import { Logger, VersioningType } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { NestFactory } from '@nestjs/core';
@@ -20,6 +15,7 @@ async function bootstrap() {
   // app.useLogger(app.get(Logger));
   app.enableCors({
     origin: cs.get('CORS_ORIGINS').split(','),
+    maxAge: 86400,
   });
 
   const port = cs.get('PORT', 4000);
@@ -27,4 +23,7 @@ async function bootstrap() {
   Logger.log(`🚀 Application is running on: http://localhost:${port}`);
 }
 
-bootstrap();
+bootstrap().catch((err) => {
+  console.error(err);
+  process.exit(1);
+});

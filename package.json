@@ -4,8 +4,10 @@
   "license": "MIT",
   "scripts": {
     "build": "nx run-many -t build --parallel=5",
-    "dev:web": "nx run-many -t dev --parallel=3 -p tag:type:web --tui=false",
-    "dev:service": "nx run-many -t serve --parallel=3 -p tag:type:service --tui=false"
+    "dev:web": "nx run-many -t dev --parallel=3 -p tag:type:web",
+    "dev:service": "nx run-many -t serve --parallel=3 -p tag:type:service",
+    "cdk:deploy": "nx deploy @org/infra",
+    "cdk:destroy": "nx destroy @org/infra"
   },
   "private": true,
   "devDependencies": {
@@ -42,6 +44,7 @@
     "@vitejs/plugin-react": "^6.0.0",
     "@vitest/coverage-v8": "~4.1.0",
     "@vitest/ui": "~4.1.0",
+    "esbuild": "^0.28.2",
     "eslint": "^9.8.0",
     "eslint-config-next": "^16.1.6",
     "eslint-config-prettier": "^10.0.0",
@@ -81,5 +84,6 @@
     "react-router-dom": "6.30.3",
     "reflect-metadata": "^0.2.0",
     "rxjs": "^7.8.0"
-  }
+  },
+  "packageManager": "pnpm@12.5.1+sha512.e3f305bc784a2bc89f5ad3b6138889470fae8d2af5f36b61216ec91c2c3d64089775f9de38aac331044ea40f245cb0d5666392dfdf65824e1907ef6a2c62de5f"
 }

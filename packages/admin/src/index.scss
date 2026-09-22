@@ -1,0 +1,24 @@
+@use '@picocss/pico/scss/pico' with (
+  $theme-color: 'azure',
+  $semantic-root-element: '#root',
+  $enable-semantic-container: true,
+  $modules: (
+    'content/code': false,
+    'forms/input-color': false,
+    'forms/input-date': false,
+    'forms/input-file': false,
+    'forms/input-range': false,
+    'forms/input-search': false,
+    'components/accordion': false,
+    'components/card': false,
+    'components/dropdown': false,
+    'components/modal': false,
+    'components/progress': false,
+    'components/tooltip': false,
+    'utilities/reduce-motion': false,
+  )
+);
+
+.error {
+  color: var(--pico-del-color);
+}

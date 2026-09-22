@@ -3,8 +3,8 @@ import { Database } from './constants';
 import { events, seatMapEntries, venues } from './schema';
 
 const SECTIONS = ['Platea A', 'Platea B', 'Campo', 'Popular'];
-const ROWS = 200;
-const SEATS_PER_ROW = 200;
+const ROWS = 50;
+const SEATS_PER_ROW = 100;
 
 const VENUES = [
   { name: 'Estadio Monumental (River Plate)', city: 'Buenos Aires' },

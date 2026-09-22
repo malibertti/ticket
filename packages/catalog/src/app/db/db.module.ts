@@ -14,9 +14,17 @@ import { relations } from './relations.js';
       inject: [ConfigService],
       useFactory(cs: ConfigService) {
         return new Pool({
-          connectionString: cs.get('DB_URL'),
+          host: cs.get('DB_HOST'),
+          port: cs.get('DB_PORT'),
+          user: cs.get('DB_USER'),
+          password: cs.get('DB_PASSWORD'),
+          database: cs.get('DB_NAME'),
           max: cs.get('DB_POOL_MAX'),
           idleTimeoutMillis: cs.get('DB_IDLE_TIMEOUT_MS'),
+          ssl:
+            process.env.DB_SSL === 'true'
+              ? { rejectUnauthorized: false }
+              : false,
         });
       },
     },
@@ -42,6 +50,9 @@ export class DbModule implements OnModuleDestroy {
   ) {}
 
   async onModuleDestroy() {
-    await this.pool.end();
+    await Promise.race([
+      this.pool.end(),
+      new Promise((r) => setTimeout(r, 2000)),
+    ]);
   }
 }

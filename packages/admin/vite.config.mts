@@ -18,6 +18,13 @@ export default defineConfig(() => ({
   // worker: {
   //  plugins: [],
   // },
+  css: {
+    preprocessorOptions: {
+      scss: {
+        quietDeps: true,
+      },
+    },
+  },
   build: {
     outDir: './dist',
     emptyOutDir: true,

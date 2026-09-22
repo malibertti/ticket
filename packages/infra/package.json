@@ -13,10 +13,10 @@
     "@swc/jest": "^0.2.39",
     "@types/jest": "^30",
     "@types/node": "^24.10.1",
-    "jest": "^30",
     "aws-cdk": "2.1141.0",
+    "jest": "^30",
     "tsx": "^4.23.0",
-    "typescript": "~7.0.2"
+    "typescript": "~6.0.3"
   },
   "dependencies": {
     "aws-cdk-lib": "^2.268.0",
@@ -28,15 +28,43 @@
     ],
     "targets": {
       "synth": {
-        "command": "cdk synth"
+        "command": "cdk synth",
+        "options": {
+          "cwd": "{projectRoot}"
+        },
+        "dependsOn": [
+          "@org/catalog:prune",
+          "@org/admin:build"
+        ]
       },
       "diff": {
         "cache": false,
-        "command": "cdk diff"
+        "command": "cdk diff",
+        "options": {
+          "cwd": "{projectRoot}"
+        },
+        "dependsOn": [
+          "@org/catalog:prune",
+          "@org/admin:build"
+        ]
       },
       "deploy": {
         "cache": false,
-        "command": "cdk deploy --require-approval never"
+        "command": "cdk deploy 'Dev/*' --concurrency 5",
+        "options": {
+          "cwd": "{projectRoot}"
+        },
+        "dependsOn": [
+          "@org/catalog:prune",
+          "@org/admin:build"
+        ]
+      },
+      "destroy": {
+        "cache": false,
+        "command": "cdk destroy 'Dev/NetworkStack' --force --concurrency 5",
+        "options": {
+          "cwd": "{projectRoot}"
+        }
       }
     }
   }
