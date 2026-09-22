@@ -87,7 +87,6 @@ export class CatalogStack extends Stack {
       minHealthyPercent: 100,
       maxHealthyPercent: 200,
       vpcSubnets: { subnetType: SubnetType.PRIVATE_WITH_EGRESS },
-      // securityGroups: [props.tasksSg],
       circuitBreaker: { rollback: true },
     });
 

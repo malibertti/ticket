@@ -9,7 +9,7 @@ import {
   ViewerProtocolPolicy,
 } from 'aws-cdk-lib/aws-cloudfront';
 import { VpcOrigin } from 'aws-cdk-lib/aws-cloudfront-origins';
-import { IVpc, SecurityGroup, SubnetType } from 'aws-cdk-lib/aws-ec2';
+import { IVpc, Port, PrefixList, SubnetType } from 'aws-cdk-lib/aws-ec2';
 import {
   ApplicationLoadBalancer,
   ApplicationProtocol,
@@ -21,19 +21,18 @@ import { CloudFrontTarget } from 'aws-cdk-lib/aws-route53-targets';
 import { CfnWebACL } from 'aws-cdk-lib/aws-wafv2';
 import { Construct } from 'constructs';
 
-interface EdgeStackProps extends StackProps {
+interface GatewayStackProps extends StackProps {
   vpc: IVpc;
-  albSg: SecurityGroup;
   apiDomain: string;
   apiCert: string;
   apiPort: number;
 }
 
-export class EdgeStack extends Stack {
+export class GatewayStack extends Stack {
   readonly targetGroup: ApplicationTargetGroup;
   readonly dist: Distribution;
 
-  constructor(scope: Construct, id: string, props: EdgeStackProps) {
+  constructor(scope: Construct, id: string, props: GatewayStackProps) {
     super(scope, id, props);
 
     // ALB
@@ -41,8 +40,14 @@ export class EdgeStack extends Stack {
       vpc: props.vpc,
       internetFacing: false,
       vpcSubnets: { subnetType: SubnetType.PRIVATE_ISOLATED },
-      securityGroup: props.albSg,
     });
+
+    alb.connections.allowFrom(
+      PrefixList.fromLookup(this, 'CloudFrontOriginFacing', {
+        prefixListName: 'com.amazonaws.global.cloudfront.origin-facing',
+      }),
+      Port.tcp(80),
+    );
 
     const listener = alb.addListener('Http', {
       port: 80,

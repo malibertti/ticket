@@ -4,10 +4,6 @@ import {
   FlowLogTrafficType,
   GatewayVpcEndpointAwsService,
   IVpc,
-  Peer,
-  Port,
-  PrefixList,
-  SecurityGroup,
   SubnetType,
   Vpc,
 } from 'aws-cdk-lib/aws-ec2';
@@ -20,9 +16,6 @@ interface NetworkStackProps extends StackProps {
 
 export class NetworkStack extends Stack {
   readonly vpc: IVpc;
-  // readonly tasksSg: SecurityGroup;
-  // readonly fnsSg: SecurityGroup;
-  readonly albSg: SecurityGroup;
 
   constructor(scope: Construct, id: string, props: NetworkStackProps) {
     super(scope, id, props);
@@ -52,21 +45,5 @@ export class NetworkStack extends Stack {
         }),
       ),
     });
-
-    // ALB SG
-    this.albSg = new SecurityGroup(this, 'AlbSg', {
-      vpc: this.vpc,
-      description: 'internal ALB',
-      allowAllOutbound: false,
-    });
-
-    this.albSg.addIngressRule(
-      Peer.prefixList(
-        PrefixList.fromLookup(this, 'CloudFrontIps', {
-          prefixListName: 'com.amazonaws.global.cloudfront.origin-facing',
-        }).prefixListId,
-      ),
-      Port.HTTP,
-    );
   }
 }
