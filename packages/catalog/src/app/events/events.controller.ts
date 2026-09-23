@@ -1,5 +1,17 @@
-import { Controller, Get, Param, ParseUUIDPipe, Query } from '@nestjs/common';
-import { type PageQuery, pageQuery } from '@org/contracts';
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  ParseUUIDPipe,
+  Post,
+  Query,
+} from '@nestjs/common';
+import {
+  type CreateEventInput,
+  type PageQuery,
+  pageQuery,
+} from '@org/contracts';
 import { ZodPipe } from '../pipes/zod/zod.pipe';
 import { EventsService } from './events.service';
 
@@ -15,5 +27,10 @@ export class EventsController {
   @Get(':id')
   getVenue(@Param('id', ParseUUIDPipe) id: string) {
     return this.events.getEvent(id);
+  }
+
+  @Post()
+  createVenue(@Body() body: CreateEventInput) {
+    return this.events.createEvent(body);
   }
 }

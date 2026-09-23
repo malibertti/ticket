@@ -23,6 +23,9 @@ export function Nav() {
           <Link to="/">Home</Link>
         </li>
         <li>
+          <Link to="/events/new">New Event</Link>
+        </li>
+        <li>
           <Link to="/page-2">Page 2</Link>
         </li>
       </ul>

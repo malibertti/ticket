@@ -9,6 +9,7 @@ import { verifierProvider } from './auth/verifier.provider';
 import { DbModule } from './db/db.module';
 import { EventsModule } from './events/events.module';
 import { OpsModule } from './ops/ops.module';
+import { SearchModule } from './search/search.module';
 import { VenuesModule } from './venues/venues.module';
 
 @Module({
@@ -23,6 +24,7 @@ import { VenuesModule } from './venues/venues.module';
     OpsModule,
     EventsModule,
     VenuesModule,
+    SearchModule,
   ],
   controllers: [],
   providers: [

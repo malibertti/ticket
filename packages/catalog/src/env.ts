@@ -15,6 +15,9 @@ export const schema = z.object({
 
   COGNITO_POOL_ID: z.string(),
   COGNITO_CLIENT_ID: z.string(),
+
+  OPENSEARCH_URL: z.url(),
+  OPENSEARCH_SIGV4: z.stringbool().default(false),
 });
 
 export type Env = z.infer<typeof schema>;

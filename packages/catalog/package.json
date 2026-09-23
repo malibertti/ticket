@@ -81,10 +81,12 @@
     }
   },
   "dependencies": {
+    "@aws-sdk/credential-provider-node": "^3.972.83",
     "@nestjs/common": "^11.0.0",
     "@nestjs/config": "^12.0.0",
     "@nestjs/core": "^11.0.0",
     "@nestjs/platform-express": "^11.0.0",
+    "@opensearch-project/opensearch": "^3.6.0",
     "@org/contracts": "workspace:*",
     "aws-jwt-verify": "^5.2.1",
     "drizzle-orm": "1.0.0-rc.4",

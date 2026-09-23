@@ -1,12 +1,19 @@
-import { Inject, Injectable, NotFoundException } from '@nestjs/common';
-import { Page, PageQuery } from '@org/contracts';
+import { Inject, Injectable, Logger, NotFoundException } from '@nestjs/common';
+import { CreateEventInput, Page, PageQuery } from '@org/contracts';
 import { eq, sql } from 'drizzle-orm';
 import { type Database, DB_CONNECTION } from '../db/constants';
-import { events } from '../db/schema';
+import { events, venues } from '../db/schema';
+import { toEventDocument } from '../search/events.document';
+import { SearchService } from '../search/search.service';
 
 @Injectable()
 export class EventsService {
-  constructor(@Inject(DB_CONNECTION) private readonly db: Database) {}
+  private readonly logger = new Logger(EventsService.name);
+
+  constructor(
+    @Inject(DB_CONNECTION) private readonly db: Database,
+    private readonly search: SearchService,
+  ) {}
 
   async getEvents({ page, limit }: PageQuery): Promise<Page<any>> {
     const offset = (page - 1) * limit;
@@ -30,6 +37,32 @@ export class EventsService {
 
     if (!row) {
       throw new NotFoundException('Event not found');
+    }
+
+    return row;
+  }
+
+  async createEvent(input: CreateEventInput) {
+    const [row] = await this.db
+      .insert(events)
+      .values({
+        ...input,
+        startsAt: new Date(input.startsAt),
+        onSaleAt: new Date(input.onSaleAt),
+      })
+      .returning();
+
+    if (row) {
+      const [venue] = await this.db
+        .select()
+        .from(venues)
+        .where(eq(venues.id, input.venueId));
+
+      try {
+        await this.search.indexEvent(toEventDocument(row, venue));
+      } catch (err) {
+        this.logger.warn(`Search indexing failed for event ${row.id}`, err);
+      }
     }
 
     return row;

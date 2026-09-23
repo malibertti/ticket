@@ -1,6 +1,7 @@
 import { useAuth } from 'react-oidc-context';
 import { Link, Route, Routes } from 'react-router-dom';
 import styles from './app.module.scss';
+import { FormEvents } from './form-events/FormEvents';
 import { Home } from './Home';
 import { Nav } from './nav/nav';
 
@@ -26,6 +27,7 @@ export function App() {
       <Nav />
       <Routes>
         <Route path="/" element={<Home />} />
+        <Route path="/events/new" element={<FormEvents />} />
         <Route
           path="/page-2"
           element={
