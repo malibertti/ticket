@@ -1,5 +1,7 @@
 import { sql } from 'drizzle-orm';
 import {
+  check,
+  doublePrecision,
   integer,
   pgTable,
   primaryKey,
@@ -8,17 +10,26 @@ import {
   uuid,
 } from 'drizzle-orm/pg-core';
 
-export const venues = pgTable('venues', {
-  id: uuid('id')
-    .primaryKey()
-    .default(sql`gen_random_uuid()`),
-  name: text('name').notNull(),
-  city: text('city').notNull(),
-  seatMapVersion: integer('seat_map_version').notNull().default(1),
-  createdAt: timestamp('created_at', { withTimezone: true })
-    .notNull()
-    .defaultNow(),
-});
+export const venues = pgTable(
+  'venues',
+  {
+    id: uuid('id')
+      .primaryKey()
+      .default(sql`gen_random_uuid()`),
+    name: text('name').notNull(),
+    city: text('city').notNull(),
+    latitude: doublePrecision('latitude').notNull(),
+    longitude: doublePrecision('longitude').notNull(),
+    seatMapVersion: integer('seat_map_version').notNull().default(1),
+    createdAt: timestamp('created_at', { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (t) => [
+    check('venues_lat_range', sql`${t.latitude} BETWEEN -90 AND 90`),
+    check('venues_lng_range', sql`${t.longitude} BETWEEN -180 AND 180`),
+  ],
+);
 
 export const seatMapEntries = pgTable(
   'seat_map_entries',

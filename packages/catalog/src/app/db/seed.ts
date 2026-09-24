@@ -7,15 +7,60 @@ const ROWS = 50;
 const SEATS_PER_ROW = 100;
 
 const VENUES = [
-  { name: 'Estadio Monumental (River Plate)', city: 'Buenos Aires' },
-  { name: 'Madison Square Garden', city: 'New York' },
-  { name: 'Estadio José Amalfitani (Vélez)', city: 'Buenos Aires' },
-  { name: 'Estadio Obras Sanitarias', city: 'Buenos Aires' },
-  { name: 'Luna Park', city: 'Buenos Aires' },
-  { name: 'Hipódromo de San Isidro', city: 'San Isidro' },
-  { name: 'Wembley Arena', city: 'London' },
-  { name: 'Tushino Airfield', city: 'Moscow' },
-  { name: 'Maracanã', city: 'Rio de Janeiro' },
+  {
+    name: 'Estadio Monumental (River Plate)',
+    city: 'Buenos Aires',
+    latitude: -34.5453,
+    longitude: -58.4498,
+  },
+  {
+    name: 'Madison Square Garden',
+    city: 'New York',
+    latitude: 40.7505,
+    longitude: -73.9934,
+  },
+  {
+    name: 'Estadio José Amalfitani (Vélez)',
+    city: 'Buenos Aires',
+    latitude: -34.6353,
+    longitude: -58.5208,
+  },
+  {
+    name: 'Estadio Obras Sanitarias',
+    city: 'Buenos Aires',
+    latitude: -34.5447,
+    longitude: -58.4606,
+  },
+  {
+    name: 'Luna Park',
+    city: 'Buenos Aires',
+    latitude: -34.6021,
+    longitude: -58.3686,
+  },
+  {
+    name: 'Hipódromo de San Isidro',
+    city: 'San Isidro',
+    latitude: -34.4811,
+    longitude: -58.5228,
+  },
+  {
+    name: 'Wembley Arena',
+    city: 'London',
+    latitude: 51.558,
+    longitude: -0.2825,
+  },
+  {
+    name: 'Tushino Airfield',
+    city: 'Moscow',
+    latitude: 55.8264,
+    longitude: 37.4361,
+  },
+  {
+    name: 'Maracanã',
+    city: 'Rio de Janeiro',
+    latitude: -22.9122,
+    longitude: -43.2302,
+  },
 ];
 
 // venueIndex is 1-based, matching the array above
