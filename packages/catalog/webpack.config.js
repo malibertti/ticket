@@ -1,6 +1,7 @@
 const { IgnorePlugin } = require('webpack');
 const { NxAppWebpackPlugin } = require('@nx/webpack/app-plugin');
 const { join } = require('path');
+const { PinoWebpackPlugin } = require('pino-webpack-plugin');
 
 module.exports = {
   output: {
@@ -24,5 +25,6 @@ module.exports = {
       generatePackageJson: false,
       sourceMap: true,
     }),
+    new PinoWebpackPlugin({ transports: ['pino-pretty'] }),
   ],
 };

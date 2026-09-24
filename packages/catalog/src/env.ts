@@ -6,6 +6,11 @@ export const schema = z.object({
 
   AWS_REGION: z.string().optional(),
 
+  LOG_LEVEL: z
+    .enum(['fatal', 'error', 'warn', 'info', 'debug', 'trace'])
+    .default('info'),
+  LOG_PRETTY: z.stringbool().default(false),
+
   DB_USER: z.string(),
   DB_PASSWORD: z.string(),
   DB_HOST: z.string(),

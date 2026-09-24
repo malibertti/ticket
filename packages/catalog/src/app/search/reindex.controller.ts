@@ -7,13 +7,15 @@ import {
   NotFoundException,
   Param,
   Post,
+  Req,
 } from '@nestjs/common';
 import type { Job, Queue } from 'bullmq';
 import { Roles } from '../auth/roles.decorator';
 import { REINDEX_DEDUP_ID, REINDEX_JOB, SEARCH_QUEUE } from './constants';
 import type { ReindexResult } from './reindex.service';
 
-type ReindexJob = Job<Record<string, never>, ReindexResult>;
+// type ReindexJob = Job<Record<string, never>, ReindexResult>;
+type ReindexJob = Job<{ requestId?: string }, ReindexResult>;
 
 @Roles(['admins'])
 @Controller('search/reindex')
@@ -22,7 +24,7 @@ export class ReindexController {
 
   @Post()
   @HttpCode(202)
-  async start() {
+  async start(@Req() req: Request & { id: string }) {
     const runningId = await this.queue.getDeduplicationJobId(REINDEX_DEDUP_ID);
 
     if (runningId) {
@@ -34,7 +36,7 @@ export class ReindexController {
 
     const job = await this.queue.add(
       REINDEX_JOB,
-      {},
+      { requestId: req.id },
       {
         deduplication: { id: REINDEX_DEDUP_ID },
         attempts: 1,
