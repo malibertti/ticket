@@ -1,1 +1,22 @@
 export const SEARCH = Symbol('SEARCH');
+
+export const EVENTS_ALIAS = 'events';
+export const EVENTS_INDEX_V1 = 'events_v1';
+
+export const SEARCH_QUEUE = 'search';
+export const REINDEX_JOB = 'reindex';
+export const REINDEX_DEDUP_ID = 'search-reindex';
+
+export const EVENTS_MAPPING = {
+  dynamic: 'strict',
+  properties: {
+    id: { type: 'keyword' },
+    title: { type: 'text', fields: { keyword: { type: 'keyword' } } },
+    venueId: { type: 'keyword' },
+    venueName: { type: 'text', fields: { keyword: { type: 'keyword' } } },
+    city: { type: 'keyword' },
+    startsAt: { type: 'date' },
+    onSaleAt: { type: 'date' },
+    status: { type: 'keyword' },
+  },
+} as const;

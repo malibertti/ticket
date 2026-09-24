@@ -1,9 +1,13 @@
 import { Inject, Injectable, OnModuleInit } from '@nestjs/common';
 import { Client } from '@opensearch-project/opensearch';
 import { SearchEventsQuery } from '@org/contracts';
-import { SEARCH } from './constants';
+import {
+  EVENTS_ALIAS,
+  EVENTS_INDEX_V1,
+  EVENTS_MAPPING,
+  SEARCH,
+} from './constants';
 import { EventDocument } from './events.document';
-import { EVENTS_ALIAS, EVENTS_INDEX_V1, eventsMapping } from './events.index';
 
 @Injectable()
 export class SearchService implements OnModuleInit {
@@ -18,7 +22,7 @@ export class SearchService implements OnModuleInit {
       await this.client.indices.create({
         index: EVENTS_INDEX_V1,
         body: {
-          mappings: eventsMapping,
+          mappings: EVENTS_MAPPING,
           aliases: {
             [EVENTS_ALIAS]: {},
           },
@@ -67,13 +71,15 @@ export class SearchService implements OnModuleInit {
     const hits = res.body.hits;
     const htotals = hits.total;
     const total = (typeof htotals === 'number' ? htotals : htotals?.value) ?? 0;
+    const items = hits.hits.map((h) => h._source);
+    const totalPages = Math.ceil(total / limit);
 
     return {
-      items: hits.hits.map((h) => h._source),
+      items,
       page,
       limit,
       total,
-      totalPages: Math.ceil(total / limit),
+      totalPages,
     };
   }
 }

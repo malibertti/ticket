@@ -13,7 +13,9 @@
   "[json]": {
     "editor.defaultFormatter": "esbenp.prettier-vscode"
   },
+  "js/ts.experimental.useTsgo": true,
   "js/ts.tsdk.path": "node_modules/typescript/lib",
   "js/ts.tsdk.promptToUseWorkspaceVersion": true,
-  "js/ts.preferences.includePackageJsonAutoImports": "auto"
+  // "js/ts.preferences.includePackageJsonAutoImports": "auto"
+  "js/ts.preferences.includePackageJsonAutoImports": "on"
 }

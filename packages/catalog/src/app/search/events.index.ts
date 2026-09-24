@@ -1,6 +1,3 @@
-export const EVENTS_ALIAS = 'events';
-export const EVENTS_INDEX_V1 = 'events_v1';
-
 export const eventsMapping = {
   dynamic: 'strict',
   properties: {
