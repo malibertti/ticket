@@ -9,7 +9,7 @@ import {
   Req,
 } from '@nestjs/common';
 import { Roles } from '../auth/roles.decorator';
-import { ReindexProducer } from '../queues/producers';
+import { ReindexProducer } from '../queues/ReindexProducer';
 
 @Roles(['admins'])
 @Controller('search/reindex')

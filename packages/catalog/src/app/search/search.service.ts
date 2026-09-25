@@ -9,7 +9,7 @@ import {
   indexSettingsAnalysis,
   SEARCH,
 } from './constants';
-import { EventDoc } from './utils/eventDoc';
+import { EventDoc } from './utils';
 
 @Injectable()
 export class SearchService implements OnModuleInit {

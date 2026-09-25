@@ -4,7 +4,8 @@ import { ConfigService } from '@nestjs/config';
 import { createIORedisClient, RedisConnection } from 'bullmq';
 import { Valkey } from 'iovalkey';
 import { FLOWS, QUEUES } from './constants';
-import { ReindexProducer, SeedProducer } from './producers';
+import { ReindexProducer } from './ReindexProducer';
+import { SeedProducer } from './SeedProducer';
 
 @Module({
   imports: [

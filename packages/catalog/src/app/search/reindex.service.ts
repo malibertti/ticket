@@ -11,7 +11,7 @@ import {
   indexSettingsAnalysis,
   SEARCH,
 } from './constants';
-import { EventDoc, toEventDoc } from './utils/eventDoc';
+import { EventDoc, toEventDoc } from './utils';
 
 const BATCH_SIZE = 500;
 

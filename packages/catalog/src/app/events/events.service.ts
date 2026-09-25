@@ -4,7 +4,7 @@ import { desc, eq, sql } from 'drizzle-orm';
 import { type Database, DB_CONNECTION } from '../db/constants';
 import { events, venues } from '../db/schema';
 import { SearchService } from '../search/search.service';
-import { toEventDoc } from '../search/utils/eventDoc';
+import { toEventDoc } from '../search/utils';
 
 @Injectable()
 export class EventsService {
