@@ -5,7 +5,7 @@ import { asc, count, eq, gt } from 'drizzle-orm';
 import { type Database, DB_CONNECTION } from '../db/constants';
 import { events, venues } from '../db/schema';
 import { EVENTS_ALIAS, EVENTS_MAPPING, SEARCH } from './constants';
-import { EventDocument, toEventDocument } from './utils/toEventDocument';
+import { EventDoc, toEventDoc } from './utils/eventDoc';
 
 const BATCH_SIZE = 500;
 
@@ -104,7 +104,7 @@ export class ReindexService {
   ): Promise<number> {
     let dropped = 0;
 
-    const result = await this.client.helpers.bulk<EventDocument>({
+    const result = await this.client.helpers.bulk<EventDoc>({
       datasource: this.eventDocuments(onProgress),
       onDocument: (doc) => ({ index: { _index: index, _id: doc.id } }),
       onDrop: (d) => {
@@ -164,7 +164,7 @@ export class ReindexService {
 
   private async *eventDocuments(
     onProgress?: ProgressFn,
-  ): AsyncGenerator<EventDocument> {
+  ): AsyncGenerator<EventDoc> {
     let lastId: string | undefined;
     let processed = 0;
 
@@ -174,6 +174,7 @@ export class ReindexService {
           id: events.id,
           title: events.title,
           startsAt: events.startsAt,
+          onSaleAt: events.onSaleAt,
           status: events.status,
           venueId: venues.id,
           venueName: venues.name,
@@ -190,11 +191,12 @@ export class ReindexService {
       if (rows.length === 0) return;
 
       for (const r of rows) {
-        yield toEventDocument(
+        yield toEventDoc(
           {
             id: r.id,
             title: r.title,
             startsAt: r.startsAt,
+            onSaleAt: r.onSaleAt,
             status: r.status,
           },
           {

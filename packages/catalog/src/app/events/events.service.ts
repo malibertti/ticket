@@ -4,7 +4,7 @@ import { eq, sql } from 'drizzle-orm';
 import { type Database, DB_CONNECTION } from '../db/constants';
 import { events, venues } from '../db/schema';
 import { SearchService } from '../search/search.service';
-import { toEventDocument } from '../search/utils/toEventDocument';
+import { toEventDoc } from '../search/utils/eventDoc';
 
 @Injectable()
 export class EventsService {
@@ -59,7 +59,7 @@ export class EventsService {
         .where(eq(venues.id, input.venueId));
 
       try {
-        await this.search.indexEvent(toEventDocument(row, venue));
+        await this.search.indexEvent(toEventDoc(row, venue));
       } catch (err) {
         this.logger.warn(`Search indexing failed for event ${row.id}`, err);
       }

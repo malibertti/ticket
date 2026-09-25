@@ -8,7 +8,7 @@ import {
   EVENTS_MAPPING,
   SEARCH,
 } from './constants';
-import { EventDocument } from './utils/toEventDocument';
+import { EventDoc } from './utils/eventDoc';
 
 @Injectable()
 export class SearchService implements OnModuleInit {
@@ -53,7 +53,7 @@ export class SearchService implements OnModuleInit {
     }
   }
 
-  indexEvent(doc: EventDocument) {
+  indexEvent(doc: EventDoc) {
     return this.client.index({
       index: EVENTS_ALIAS,
       id: doc.id,
