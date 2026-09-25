@@ -2,6 +2,7 @@ import { CreateEventInput } from '@org/contracts';
 import { useState } from 'react';
 import { useForm, type SubmitHandler } from 'react-hook-form';
 import { useAuth } from 'react-oidc-context';
+import styles from './FormEvents.module.scss';
 import { randomEvent } from './utils';
 
 const { VITE_API_URL } = import.meta.env;
@@ -16,7 +17,7 @@ export function FormEvents() {
     reset,
     formState: { errors, isSubmitting },
   } = useForm<CreateEventInput>({
-    defaultValues: randomEvent('3e9a9a64-95a2-41de-b06f-ecd12fbfe80c'),
+    defaultValues: randomEvent('b32bd589-1634-4ec2-afd7-849a61c1e7b6'),
   });
 
   const onSubmit: SubmitHandler<CreateEventInput> = async (data) => {
@@ -73,28 +74,31 @@ export function FormEvents() {
               />
               {errors.venueId && <small>{errors.venueId.message}</small>}
             </label>
-            <label>
-              Starts at
-              <input
-                type="datetime-local"
-                aria-invalid={!!errors.startsAt || undefined}
-                {...register('startsAt', {
-                  required: 'Start time is required',
-                })}
-              />
-              {errors.startsAt && <small>{errors.startsAt.message}</small>}
-            </label>
-            <label>
-              On sale at
-              <input
-                type="datetime-local"
-                aria-invalid={!!errors.onSaleAt || undefined}
-                {...register('onSaleAt', {
-                  required: 'On-sale time is required',
-                })}
-              />
-              {errors.onSaleAt && <small>{errors.onSaleAt.message}</small>}
-            </label>
+            <div className={styles.formGroup}>
+              <label>
+                Starts at
+                <input
+                  type="datetime-local"
+                  aria-invalid={!!errors.startsAt || undefined}
+                  {...register('startsAt', {
+                    required: 'Start time is required',
+                  })}
+                />
+                {errors.startsAt && <small>{errors.startsAt.message}</small>}
+              </label>
+              <label>
+                On sale at
+                <input
+                  type="datetime-local"
+                  aria-invalid={!!errors.onSaleAt || undefined}
+                  {...register('onSaleAt', {
+                    required: 'On-sale time is required',
+                  })}
+                />
+                {errors.onSaleAt && <small>{errors.onSaleAt.message}</small>}
+              </label>
+            </div>
+
             <label>
               Status
               <input

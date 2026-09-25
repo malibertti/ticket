@@ -1,3 +1,4 @@
+import { WebStorageStateStore } from 'oidc-client-ts';
 import { StrictMode } from 'react';
 import * as ReactDOM from 'react-dom/client';
 import { AuthProvider } from 'react-oidc-context';
@@ -11,6 +12,7 @@ const oidcConfig = {
   redirect_uri: `${window.location.origin}/`,
   response_type: 'code',
   scope: 'openid email',
+  userStore: new WebStorageStateStore({ store: window.localStorage }),
   onSigninCallback: () => {
     window.history.replaceState({}, document.title, window.location.pathname);
   },
