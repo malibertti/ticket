@@ -1,10 +1,16 @@
 import { Inject, Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Client } from '@opensearch-project/opensearch';
+import { JobProgress } from 'bullmq';
 import { asc, count, eq, gt } from 'drizzle-orm';
 import { type Database, DB_CONNECTION } from '../db/constants';
 import { events, venues } from '../db/schema';
-import { EVENTS_ALIAS, EVENTS_MAPPING, SEARCH } from './constants';
+import {
+  EVENTS_ALIAS,
+  EVENTS_MAPPING,
+  indexSettingsAnalysis,
+  SEARCH,
+} from './constants';
 import { EventDoc, toEventDoc } from './utils/eventDoc';
 
 const BATCH_SIZE = 500;
@@ -16,7 +22,7 @@ export type ReindexResult = {
   durationMs: number;
 };
 
-type ProgressFn = (processed: number) => Promise<unknown> | unknown;
+type ProgressFn = (processed: JobProgress) => void;
 
 @Injectable()
 export class ReindexService {
@@ -28,7 +34,7 @@ export class ReindexService {
     private readonly cs: ConfigService,
   ) {}
 
-  async run(onProgress?: ProgressFn): Promise<ReindexResult> {
+  async run(onProgress: ProgressFn): Promise<ReindexResult> {
     const started = Date.now();
     const previousIndex = await this.currentIndex();
     const newIndex = `${EVENTS_ALIAS}_${started}`;
@@ -79,15 +85,8 @@ export class ReindexService {
           mappings: EVENTS_MAPPING,
           settings: {
             refresh_interval: '-1',
-            number_of_replicas: 0,
-            analysis: {
-              normalizer: {
-                folded: {
-                  type: 'custom',
-                  filter: ['lowercase', 'asciifolding'],
-                },
-              },
-            },
+            number_of_replicas: this.cs.getOrThrow('OPENSEARCH_REPLICAS'),
+            analysis: indexSettingsAnalysis,
           },
         },
       },
@@ -100,7 +99,7 @@ export class ReindexService {
 
   private async bulkLoad(
     index: string,
-    onProgress?: ProgressFn,
+    onProgress: ProgressFn,
   ): Promise<number> {
     let dropped = 0;
 
@@ -163,7 +162,7 @@ export class ReindexService {
   }
 
   private async *eventDocuments(
-    onProgress?: ProgressFn,
+    onProgress: ProgressFn,
   ): AsyncGenerator<EventDoc> {
     let lastId: string | undefined;
     let processed = 0;
@@ -211,7 +210,7 @@ export class ReindexService {
 
       lastId = rows.at(-1)!.id;
       processed += rows.length;
-      await onProgress?.(processed);
+      onProgress(processed);
     }
   }
 }

@@ -8,6 +8,7 @@ import {
 } from '@nestjs/common';
 import { type PageQuery, pageQuery } from '@org/contracts';
 import { type Response } from 'express';
+import { Public } from '../auth/public.decorator';
 import { ZodPipe } from '../pipes/zod/zod.pipe';
 import { VenuesService } from './venues.service';
 
@@ -16,22 +17,19 @@ export class VenuesController {
   constructor(private readonly venues: VenuesService) {}
 
   @Get()
+  @Public()
   getVenues(@Query(new ZodPipe(pageQuery)) query: PageQuery) {
     return this.venues.getVenues(query);
   }
 
-  // @Get()
-  // @Version('2')
-  // getVenues2(@Query(new ZodPipe(pageQuery)) query: PageQuery) {
-  //   return ['hello', 'version', '2', query];
-  // }
-
   @Get(':id')
+  @Public()
   getVenue(@Param('id', ParseUUIDPipe) id: string) {
     return this.venues.getVenue(id);
   }
 
   @Get(':id/seat-map')
+  @Public()
   async seatMap(
     @Param('id', ParseUUIDPipe) id: string,
     @Res({ passthrough: true }) res: Response,

@@ -8,10 +8,12 @@ import {
   Query,
 } from '@nestjs/common';
 import {
+  createEventInput,
   type CreateEventInput,
   type PageQuery,
   pageQuery,
 } from '@org/contracts';
+import { Public } from '../auth/public.decorator';
 import { ZodPipe } from '../pipes/zod/zod.pipe';
 import { EventsService } from './events.service';
 
@@ -20,17 +22,19 @@ export class EventsController {
   constructor(private readonly events: EventsService) {}
 
   @Get()
-  getVenues(@Query(new ZodPipe(pageQuery)) query: PageQuery) {
+  @Public()
+  getEvents(@Query(new ZodPipe(pageQuery)) query: PageQuery) {
     return this.events.getEvents(query);
   }
 
   @Get(':id')
-  getVenue(@Param('id', ParseUUIDPipe) id: string) {
+  @Public()
+  getEvent(@Param('id', ParseUUIDPipe) id: string) {
     return this.events.getEvent(id);
   }
 
   @Post()
-  createVenue(@Body() body: CreateEventInput) {
+  createEvent(@Body(new ZodPipe(createEventInput)) body: CreateEventInput) {
     return this.events.createEvent(body);
   }
 }

@@ -1,6 +1,6 @@
 import { Inject, Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { CreateEventInput, Page, PageQuery } from '@org/contracts';
-import { eq, sql } from 'drizzle-orm';
+import { desc, eq, sql } from 'drizzle-orm';
 import { type Database, DB_CONNECTION } from '../db/constants';
 import { events, venues } from '../db/schema';
 import { SearchService } from '../search/search.service';
@@ -19,7 +19,12 @@ export class EventsService {
     const offset = (page - 1) * limit;
 
     const [rows, [{ count }]] = await Promise.all([
-      this.db.select().from(events).limit(limit).offset(offset),
+      this.db
+        .select()
+        .from(events)
+        .limit(limit)
+        .offset(offset)
+        .orderBy(desc(events.createdAt)),
       this.db.select({ count: sql<number>`count(*)::int` }).from(events),
     ]);
 

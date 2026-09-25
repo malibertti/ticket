@@ -6,6 +6,7 @@ import {
   EVENTS_ALIAS,
   EVENTS_INDEX_V1,
   EVENTS_MAPPING,
+  indexSettingsAnalysis,
   SEARCH,
 } from './constants';
 import { EventDoc } from './utils/eventDoc';
@@ -37,14 +38,7 @@ export class SearchService implements OnModuleInit {
             },
             settings: {
               number_of_replicas: this.cs.getOrThrow('OPENSEARCH_REPLICAS'),
-              analysis: {
-                normalizer: {
-                  folded: {
-                    type: 'custom',
-                    filter: ['lowercase', 'asciifolding'],
-                  },
-                },
-              },
+              analysis: indexSettingsAnalysis,
             },
           },
         });
@@ -52,11 +46,11 @@ export class SearchService implements OnModuleInit {
           { index: EVENTS_ALIAS, alias: EVENTS_ALIAS },
           'Index created',
         );
-      } catch (err: any) {
-        if (
-          err?.meta?.body?.error?.type !== 'resource_already_exists_exception'
-        )
-          throw err;
+      } catch (err: unknown) {
+        this.logger.log(
+          err,
+          `Error creating index: ${EVENTS_INDEX_V1}, alias: ${EVENTS_ALIAS}`,
+        );
       }
     }
   }

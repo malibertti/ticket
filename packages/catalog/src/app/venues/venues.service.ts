@@ -1,6 +1,6 @@
 import { Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { type Page, type PageQuery } from '@org/contracts';
-import { eq, sql } from 'drizzle-orm';
+import { desc, eq, sql } from 'drizzle-orm';
 import { type Database, DB_CONNECTION } from '../db/constants';
 import { seatMapEntries, venues } from '../db/schema';
 
@@ -12,7 +12,12 @@ export class VenuesService {
     const offset = (page - 1) * limit;
 
     const [rows, [{ count }]] = await Promise.all([
-      this.db.select().from(venues).limit(limit).offset(offset),
+      this.db
+        .select()
+        .from(venues)
+        .limit(limit)
+        .offset(offset)
+        .orderBy(desc(venues.createdAt)),
       this.db.select({ count: sql<number>`count(*)::int` }).from(venues),
     ]);
 
@@ -46,6 +51,7 @@ export class VenuesService {
       .where(eq(seatMapEntries.venueId, id))
       .orderBy(
         seatMapEntries.section,
+        sql`length(${seatMapEntries.rowLabel})`,
         seatMapEntries.rowLabel,
         seatMapEntries.seatNumber,
       );

@@ -1,9 +1,10 @@
+import { IndexSettingsAnalysis } from '@opensearch-project/opensearch/api/_types/indices._common.js';
+
 export const SEARCH = Symbol('SEARCH');
 
 export const EVENTS_ALIAS = 'events';
 export const EVENTS_INDEX_V1 = 'events_v1';
 
-export const SEARCH_QUEUE = 'search';
 export const REINDEX_JOB = 'reindex';
 export const REINDEX_DEDUP_ID = 'search-reindex';
 
@@ -21,3 +22,12 @@ export const EVENTS_MAPPING = {
     location: { type: 'geo_point' },
   },
 } as const;
+
+export const indexSettingsAnalysis: IndexSettingsAnalysis = {
+  normalizer: {
+    folded: {
+      type: 'custom',
+      filter: ['lowercase', 'asciifolding'],
+    },
+  },
+};

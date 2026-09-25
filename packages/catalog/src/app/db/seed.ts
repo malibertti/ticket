@@ -1,6 +1,9 @@
+import { JobProgress } from 'bullmq/dist/esm/types';
 import { sql } from 'drizzle-orm';
 import { Database } from './constants';
 import { events, seatMapEntries, venues } from './schema';
+
+type ProgressFn = (processed: JobProgress) => void;
 
 const SECTIONS = ['Platea A', 'Platea B', 'Campo', 'Popular'];
 const ROWS = 50;
@@ -146,24 +149,23 @@ function chunk<T>(items: Iterable<T>, size: number): T[][] {
 }
 
 // ---------- seed ----------
-export async function seedDb(db: Database) {
+export async function seedDb(db: Database, onProgress: ProgressFn) {
   const started = Date.now();
 
   return db.transaction(async (tx) => {
-    // console.log('START');
     // Truncate first
     await tx.execute(
       sql`TRUNCATE TABLE events, seat_map_entries, venues CASCADE`,
     );
 
-    // console.log('TRUNCATED');
+    onProgress('truncated');
 
     const inserted = await tx
       .insert(venues)
       .values(VENUES)
       .returning({ id: venues.id, name: venues.name });
 
-    // console.log('VENUES INSERTED');
+    onProgress('venues inserted');
 
     const idByName = new Map(inserted.map((v) => [v.name, v.id]));
 
@@ -173,7 +175,7 @@ export async function seedDb(db: Database) {
       }
     }
 
-    // console.log('SEATMAPS INSERTED');
+    onProgress('seatmans inserted');
 
     await tx.insert(events).values(
       EVENTS.map((e) => {
@@ -191,13 +193,13 @@ export async function seedDb(db: Database) {
       }),
     );
 
-    // console.log('EVENTS INSERTED');
+    onProgress('events inserted');
 
-    return {
+    onProgress({
       venues: VENUES.length,
       seats: VENUES.length * SECTIONS.length * ROWS * SEATS_PER_ROW,
       events: EVENTS.length,
       seconds: (Date.now() - started) / 1000,
-    };
+    });
   });
 }

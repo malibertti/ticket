@@ -10,6 +10,7 @@ import { DbModule } from './db/db.module';
 import { EventsModule } from './events/events.module';
 import { LoggerModule } from './logger/logger.module';
 import { OpsModule } from './ops/ops.module';
+import { QueuesModule } from './queues/queues.module';
 import { SearchModule } from './search/search.module';
 import { VenuesModule } from './venues/venues.module';
 
@@ -27,6 +28,7 @@ import { VenuesModule } from './venues/venues.module';
     VenuesModule,
     SearchModule,
     LoggerModule,
+    QueuesModule,
   ],
   controllers: [],
   providers: [

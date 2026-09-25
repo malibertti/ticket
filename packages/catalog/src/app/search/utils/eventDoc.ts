@@ -33,7 +33,7 @@ export function toEventDoc(event: Event, venue: Venue): EventDoc {
     venueName: venue.name,
     city: venue.city,
     startsAt: event.startsAt.toISOString(),
-    onSaleAt: event.startsAt.toISOString(),
+    onSaleAt: event.onSaleAt.toISOString(),
     status: event.status,
     location: {
       lat: venue.latitude,

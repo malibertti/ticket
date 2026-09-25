@@ -59,4 +59,7 @@ export const events = pgTable('events', {
   startsAt: timestamp('starts_at', { withTimezone: true }).notNull(),
   onSaleAt: timestamp('on_sale_at', { withTimezone: true }).notNull(),
   status: text('status').notNull().default('draft'),
+  createdAt: timestamp('created_at', { withTimezone: true })
+    .notNull()
+    .defaultNow(),
 });

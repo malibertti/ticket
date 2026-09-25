@@ -2,10 +2,12 @@ import { Inject, Module, OnModuleDestroy } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { drizzle } from 'drizzle-orm/node-postgres';
 import { Pool } from 'pg';
+import { QueuesModule } from '../queues/queues.module.js';
 import { DB_CONNECTION, DB_POOL } from './constants.js';
 import { DbController } from './db.controller.js';
 import { DbService } from './db.service.js';
 import { relations } from './relations.js';
+import { SeedProcessor } from './seed.processor.js';
 
 @Module({
   providers: [
@@ -21,10 +23,7 @@ import { relations } from './relations.js';
           database: cs.get('DB_NAME'),
           max: cs.get('DB_POOL_MAX'),
           idleTimeoutMillis: cs.get('DB_IDLE_TIMEOUT_MS'),
-          ssl:
-            process.env.DB_SSL === 'true'
-              ? { rejectUnauthorized: false }
-              : false,
+          ssl: cs.get('DB_SSL') ? { rejectUnauthorized: false } : false,
         });
       },
     },
@@ -39,7 +38,9 @@ import { relations } from './relations.js';
       },
     },
     DbService,
+    SeedProcessor,
   ],
+  imports: [QueuesModule],
   exports: [DB_CONNECTION],
   controllers: [DbController],
 })
