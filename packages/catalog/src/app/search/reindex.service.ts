@@ -53,7 +53,7 @@ export class ReindexService {
 
       return { index: newIndex, previousIndex, indexed, durationMs };
     } catch (err) {
-      this.logger.error(`Reindex failed, deleting ${newIndex}`, err as Error);
+      this.logger.error(err as Error, `Reindex failed, deleting ${newIndex}`);
       await this.client.indices
         .delete({ index: newIndex })
         .catch(() => undefined);

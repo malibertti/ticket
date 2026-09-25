@@ -1,6 +1,6 @@
 import { Processor, WorkerHost } from '@nestjs/bullmq';
+import { Logger } from '@nestjs/common';
 import { Job } from 'bullmq';
-import { InjectPinoLogger, PinoLogger } from 'nestjs-pino';
 import { REINDEX_JOB, SEARCH_QUEUE } from './constants';
 import { ReindexService } from './reindex.service';
 
@@ -8,23 +8,25 @@ import { ReindexService } from './reindex.service';
   concurrency: 1,
 })
 export class SearchProcessor extends WorkerHost {
-  constructor(
-    private readonly reindex: ReindexService,
-    @InjectPinoLogger(SearchProcessor.name) private readonly logger: PinoLogger,
-  ) {
+  private readonly logger = new Logger(SearchProcessor.name);
+
+  constructor(private readonly reindex: ReindexService) {
     super();
   }
 
   async process(job: Job) {
-    const ctx = { jobId: job.id, requestId: job.data.requestId };
+    const ctx = {
+      jobId: job.id,
+      requestId: job.data.requestId,
+    };
 
     switch (job.name) {
       case REINDEX_JOB: {
-        this.logger.info(ctx, 'reindex started');
+        this.logger.log(ctx, 'reindex started');
         const res = await this.reindex.run((processed) =>
           job.updateProgress(processed),
         );
-        this.logger.info({ ...ctx, ...res }, 'reindex finished');
+        this.logger.log({ ctx, res }, 'reindex completed');
 
         return res;
       }

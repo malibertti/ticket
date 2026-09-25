@@ -61,7 +61,7 @@ export class EventsService {
       try {
         await this.search.indexEvent(toEventDoc(row, venue));
       } catch (err) {
-        this.logger.warn(`Search indexing failed for event ${row.id}`, err);
+        this.logger.warn({ err }, `Search indexing failed for event ${row.id}`);
       }
     }
 

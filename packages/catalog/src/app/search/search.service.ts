@@ -1,4 +1,4 @@
-import { Inject, Injectable, OnModuleInit } from '@nestjs/common';
+import { Inject, Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Client } from '@opensearch-project/opensearch';
 import { SearchEventsQuery } from '@org/contracts';
@@ -12,6 +12,8 @@ import { EventDoc } from './utils/eventDoc';
 
 @Injectable()
 export class SearchService implements OnModuleInit {
+  private readonly logger = new Logger(SearchService.name);
+
   constructor(
     @Inject(SEARCH) private readonly client: Client,
     private readonly cs: ConfigService,
@@ -23,6 +25,8 @@ export class SearchService implements OnModuleInit {
     });
 
     if (!body) {
+      this.logger.log('Index not found, creating');
+
       try {
         await this.client.indices.create({
           index: EVENTS_INDEX_V1,
@@ -44,6 +48,10 @@ export class SearchService implements OnModuleInit {
             },
           },
         });
+        this.logger.log(
+          { index: EVENTS_ALIAS, alias: EVENTS_ALIAS },
+          'Index created',
+        );
       } catch (err: any) {
         if (
           err?.meta?.body?.error?.type !== 'resource_already_exists_exception'
