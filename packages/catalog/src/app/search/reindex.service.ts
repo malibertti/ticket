@@ -72,16 +72,22 @@ export class ReindexService {
   }
 
   private async createIndexForBulkLoad(index: string) {
-    await this.client.indices.create({
-      index,
-      body: {
-        mappings: EVENTS_MAPPING,
-        settings: {
-          refresh_interval: '-1',
-          number_of_replicas: 0,
+    await this.client.indices.create(
+      {
+        index,
+        body: {
+          mappings: EVENTS_MAPPING,
+          settings: {
+            refresh_interval: '-1',
+            number_of_replicas: 0,
+          },
         },
       },
-    });
+      {
+        requestTimeout: 30_000,
+        maxRetries: 0,
+      },
+    );
   }
 
   private async bulkLoad(

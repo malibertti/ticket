@@ -9,7 +9,7 @@ export const schema = z.object({
   LOG_LEVEL: z
     .enum(['fatal', 'error', 'warn', 'info', 'debug', 'trace'])
     .default('info'),
-  LOG_PRETTY: z.stringbool().default(false),
+  LOG_PRETTY: z.stringbool().optional().default(false),
 
   DB_USER: z.string(),
   DB_PASSWORD: z.string(),
@@ -24,10 +24,10 @@ export const schema = z.object({
   COGNITO_CLIENT_ID: z.string(),
 
   OPENSEARCH_URL: z.url(),
-  OPENSEARCH_SIGV4: z.stringbool().default(false),
+  OPENSEARCH_AUTH: z.enum(['none', 'aws']).default('none'),
   OPENSEARCH_REPLICAS: z.coerce.number().int().min(0).default(0),
 
-  VALKEY_URL: z.string(),
+  VALKEY_QUEUE_URL: z.string(),
 });
 
 export type Env = z.infer<typeof schema>;

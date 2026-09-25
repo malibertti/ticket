@@ -20,7 +20,7 @@ services:
     restart: unless-stopped
 
   opensearch:
-    image: opensearchproject/opensearch:3.7.0
+    image: opensearchproject/opensearch:3.5.0
     profiles: [search]
     environment:
       discovery.type: single-node
@@ -35,7 +35,7 @@ services:
     restart: unless-stopped
 
   opensearch-dashboards:
-    image: opensearchproject/opensearch-dashboards:3.7.0
+    image: opensearchproject/opensearch-dashboards:3.5.0
     profiles: [search]
     ports: ['5601:5601']
     environment:

@@ -68,47 +68,47 @@ const EVENTS_PRE = [
   {
     title: 'Madonna — The Girlie Show',
     venueIndex: 0,
-    startsAt: '1993-10-05T23:00:00Z',
+    startsAt: '2026-10-05T23:00:00Z',
   },
   {
     title: 'Madonna — Confessions Tour',
     venueIndex: 1,
-    startsAt: '2006-08-01T19:30:00Z',
+    startsAt: '2027-08-01T19:30:00Z',
   },
   {
     title: 'Soda Stereo — El Último Concierto',
     venueIndex: 0,
-    startsAt: '1997-09-20T23:00:00Z',
+    startsAt: '2027-09-20T23:00:00Z',
   },
   {
     title: "Guns N' Roses — Use Your Illusion",
     venueIndex: 0,
-    startsAt: '1993-07-16T23:00:00Z',
+    startsAt: '2027-07-16T23:00:00Z',
   },
   {
     title: 'Metallica — Monsters of Rock Moscow',
     venueIndex: 1,
-    startsAt: '1991-09-28T14:00:00Z',
+    startsAt: '2027-09-28T14:00:00Z',
   },
   {
     title: 'Queen — The Game Tour',
     venueIndex: 1,
-    startsAt: '1981-02-28T23:00:00Z',
+    startsAt: '2027-02-28T23:00:00Z',
   },
   {
     title: 'Nirvana — Nevermind Tour',
     venueIndex: 1,
-    startsAt: '1992-10-30T23:00:00Z',
+    startsAt: '2026-10-30T23:00:00Z',
   },
   {
     title: 'The Rolling Stones — Voodoo Lounge',
     venueIndex: 0,
-    startsAt: '1995-02-09T23:00:00Z',
+    startsAt: '2027-02-09T23:00:00Z',
   },
   {
     title: 'Pink Floyd — The Division Bell',
     venueIndex: 0,
-    startsAt: '1994-10-20T19:00:00Z',
+    startsAt: '2026-10-20T19:00:00Z',
   },
 ];
 

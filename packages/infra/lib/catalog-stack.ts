@@ -1,5 +1,5 @@
 import { RemovalPolicy, Stack, StackProps } from 'aws-cdk-lib';
-import { IVpc, Port, SubnetType } from 'aws-cdk-lib/aws-ec2';
+import { IVpc, Port, SecurityGroup, SubnetType } from 'aws-cdk-lib/aws-ec2';
 import { Platform } from 'aws-cdk-lib/aws-ecr-assets';
 import {
   AwsLogDriver,
@@ -13,6 +13,7 @@ import {
 } from 'aws-cdk-lib/aws-ecs';
 import { ApplicationTargetGroup } from 'aws-cdk-lib/aws-elasticloadbalancingv2';
 import { LogGroup, RetentionDays } from 'aws-cdk-lib/aws-logs';
+import { Domain } from 'aws-cdk-lib/aws-opensearchservice';
 import { DatabaseInstance } from 'aws-cdk-lib/aws-rds';
 import { Construct } from 'constructs';
 import { join } from 'node:path';
@@ -25,6 +26,9 @@ interface CatalogStackProps extends StackProps {
   cors: string;
   poolId: string;
   poolClientId: string;
+  searchDomain: Domain;
+  cacheSg: SecurityGroup;
+  cacheUrl: string;
 }
 
 export class CatalogStack extends Stack {
@@ -55,17 +59,25 @@ export class CatalogStack extends Stack {
         platform: Platform.LINUX_ARM64,
       }),
       environment: {
+        AWS_REGION: this.region,
         PORT: String(props.port),
         CORS_ORIGINS: `https://${props.cors}`,
-        DB_SSL: 'true',
         DB_USER: 'postgres',
         DB_HOST: props.db.instanceEndpoint.hostname,
         DB_PORT: String(props.db.instanceEndpoint.port),
         DB_NAME: 'ticketing',
         DB_POOL_MAX: '10',
         DB_IDLE_TIMEOUT_MS: '10000',
+        DB_SSL: 'true',
+        LOG_LEVEL: 'info',
+        // LOG_PRETTY: false,
         COGNITO_POOL_ID: props.poolId,
         COGNITO_CLIENT_ID: props.poolClientId,
+        OPENSEARCH_URL: `https://${props.searchDomain.domainEndpoint}`,
+        OPENSEARCH_AUTH: 'aws',
+        OPENSEARCH_REPLICAS: '0',
+        // VALKEY_URL: props.cacheUrl,
+        VALKEY_QUEUE_URL: props.cacheUrl,
       },
       secrets: {
         DB_PASSWORD: Secret.fromSecretsManager(props.db.secret!, 'password'),
@@ -91,6 +103,10 @@ export class CatalogStack extends Stack {
     });
 
     service.connections.allowTo(props.db, Port.tcp(5432));
+    service.connections.allowTo(props.searchDomain, Port.tcp(443));
+    service.connections.allowTo(props.cacheSg, Port.tcp(6379));
+
+    props.searchDomain.grantReadWrite(taskDefinition.taskRole);
 
     const scaling = service.autoScaleTaskCount({
       minCapacity: 1,

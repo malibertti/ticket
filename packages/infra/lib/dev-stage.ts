@@ -7,6 +7,7 @@ import { DataStack } from './data-stack';
 import { GatewayStack } from './gateway-stack';
 import { MigrateStack } from './migrate-stack';
 import { NetworkStack } from './network-stack';
+import { SearchStack } from './search-stack';
 
 interface DevStageProps extends StageProps {
   apiDomain: string;
@@ -64,6 +65,12 @@ export class DevStage extends Stage {
     });
     Tags.of(migrate).add('component', 'migrate');
 
+    const search = new SearchStack(this, 'SearchStack', {
+      env: props.env,
+      vpc: network.vpc,
+    });
+    Tags.of(search).add('component', 'search');
+
     const catalog = new CatalogStack(this, 'CatalogStack', {
       env: props.env,
       vpc: network.vpc,
@@ -73,6 +80,9 @@ export class DevStage extends Stage {
       db: data.db,
       poolId: auth.userPool.userPoolId,
       poolClientId: auth.userPoolClient.userPoolClientId,
+      searchDomain: search.searchDomain,
+      cacheSg: search.cacheSg,
+      cacheUrl: search.cacheUrl,
     });
     Tags.of(catalog).add('component', 'catalog');
 

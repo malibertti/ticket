@@ -1,4 +1,5 @@
 import { Inject, Injectable, OnModuleInit } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { Client } from '@opensearch-project/opensearch';
 import { SearchEventsQuery } from '@org/contracts';
 import {
@@ -11,7 +12,10 @@ import { EventDocument } from './events.document';
 
 @Injectable()
 export class SearchService implements OnModuleInit {
-  constructor(@Inject(SEARCH) private readonly client: Client) {}
+  constructor(
+    @Inject(SEARCH) private readonly client: Client,
+    private readonly cs: ConfigService,
+  ) {}
 
   async onModuleInit() {
     const { body } = await this.client.indices.existsAlias({
@@ -19,15 +23,25 @@ export class SearchService implements OnModuleInit {
     });
 
     if (!body) {
-      await this.client.indices.create({
-        index: EVENTS_INDEX_V1,
-        body: {
-          mappings: EVENTS_MAPPING,
-          aliases: {
-            [EVENTS_ALIAS]: {},
+      try {
+        await this.client.indices.create({
+          index: EVENTS_INDEX_V1,
+          body: {
+            mappings: EVENTS_MAPPING,
+            aliases: {
+              [EVENTS_ALIAS]: {},
+            },
+            settings: {
+              number_of_replicas: this.cs.getOrThrow('OPENSEARCH_REPLICAS'),
+            },
           },
-        },
-      });
+        });
+      } catch (err: any) {
+        if (
+          err?.meta?.body?.error?.type !== 'resource_already_exists_exception'
+        )
+          throw err;
+      }
     }
   }
 

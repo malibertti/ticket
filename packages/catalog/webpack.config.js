@@ -14,6 +14,8 @@ module.exports = {
   plugins: [
     new IgnorePlugin({ resourceRegExp: /^pg-native$/ }),
     new IgnorePlugin({ resourceRegExp: /^aws-sdk$/ }),
+    new IgnorePlugin({ resourceRegExp: /^ioredis$/ }),
+    new IgnorePlugin({ resourceRegExp: /^@valkey\/valkey-glide$/ }),
     new NxAppWebpackPlugin({
       target: 'node',
       compiler: 'tsc',
@@ -26,5 +28,14 @@ module.exports = {
       sourceMap: true,
     }),
     new PinoWebpackPlugin({ transports: ['pino-pretty'] }),
+    {
+      apply(compiler) {
+        for (const rule of compiler.options.module.rules) {
+          if (rule?.loader?.includes('source-map-loader')) {
+            rule.exclude = /node_modules/;
+          }
+        }
+      },
+    },
   ],
 };

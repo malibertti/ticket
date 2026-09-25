@@ -19,12 +19,19 @@ export function Home() {
       },
     })
       .then(async (res) => {
-        const data = await res.json();
-        setData(data);
+        setData(await res.json());
       })
       .catch((err) => {
         console.log(err);
       });
+  }
+
+  async function searchEvents(value: string) {
+    const query = value.trim();
+
+    await makeRequest(
+      `search/events${query ? `?q=${encodeURIComponent(query)}` : ''}`,
+    );
   }
 
   return (
@@ -32,16 +39,29 @@ export function Home() {
       <div style={{ display: 'flex', gap: '1em' }}>
         {isAdmin && (
           <>
+            <button onClick={() => makeRequest('db/truncate', 'post')}>
+              Truncate DB
+            </button>
             <button onClick={() => makeRequest('db/seed', 'post')}>
               Seed DB
             </button>
-            <button onClick={() => makeRequest('db/truncate', 'post')}>
-              Truncate DB
+            <button onClick={() => makeRequest('search/reindex', 'post')}>
+              Reindex
             </button>
           </>
         )}
         <button onClick={() => makeRequest('events')}>Get Events</button>
         <button onClick={() => makeRequest('venues')}>Get Venues</button>
+      </div>
+      <br />
+      <div>
+        <input
+          type="text"
+          placeholder="Search events"
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') void searchEvents(e.currentTarget.value);
+          }}
+        />
       </div>
       <br />
       <pre>{JSON.stringify(data, null, 2)}</pre>

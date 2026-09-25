@@ -26,7 +26,7 @@ import { SearchService } from './search.service';
           maxRetries: 1,
         };
 
-        if (!cs.get('OPENSEARCH_SIGV4')) {
+        if (cs.get('OPENSEARCH_AUTH') === 'none') {
           return new Client(common);
         }
 
@@ -52,7 +52,7 @@ import { SearchService } from './search.service';
         RedisConnection.clientFactory = (opts) =>
           createIORedisClient(new Valkey(opts));
 
-        const url = new URL(cs.get('VALKEY_URL')!);
+        const url = new URL(cs.get('VALKEY_QUEUE_URL')!);
 
         return {
           connection: {
