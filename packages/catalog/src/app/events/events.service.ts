@@ -3,8 +3,8 @@ import { CreateEventInput, Page, PageQuery } from '@org/contracts';
 import { eq, sql } from 'drizzle-orm';
 import { type Database, DB_CONNECTION } from '../db/constants';
 import { events, venues } from '../db/schema';
-import { toEventDocument } from '../search/events.document';
 import { SearchService } from '../search/search.service';
+import { toEventDocument } from '../search/utils/toEventDocument';
 
 @Injectable()
 export class EventsService {

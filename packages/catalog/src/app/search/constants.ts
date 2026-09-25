@@ -14,9 +14,10 @@ export const EVENTS_MAPPING = {
     title: { type: 'text', fields: { keyword: { type: 'keyword' } } },
     venueId: { type: 'keyword' },
     venueName: { type: 'text', fields: { keyword: { type: 'keyword' } } },
-    city: { type: 'keyword' },
+    city: { type: 'keyword', normalizer: 'folded' },
     startsAt: { type: 'date' },
     onSaleAt: { type: 'date' },
     status: { type: 'keyword' },
+    location: { type: 'geo_point' },
   },
 } as const;

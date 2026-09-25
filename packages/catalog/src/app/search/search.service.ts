@@ -8,7 +8,7 @@ import {
   EVENTS_MAPPING,
   SEARCH,
 } from './constants';
-import { EventDocument } from './events.document';
+import { EventDocument } from './utils/toEventDocument';
 
 @Injectable()
 export class SearchService implements OnModuleInit {
@@ -33,6 +33,14 @@ export class SearchService implements OnModuleInit {
             },
             settings: {
               number_of_replicas: this.cs.getOrThrow('OPENSEARCH_REPLICAS'),
+              analysis: {
+                normalizer: {
+                  folded: {
+                    type: 'custom',
+                    filter: ['lowercase', 'asciifolding'],
+                  },
+                },
+              },
             },
           },
         });

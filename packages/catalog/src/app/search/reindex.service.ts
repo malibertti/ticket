@@ -5,7 +5,7 @@ import { asc, count, eq, gt } from 'drizzle-orm';
 import { type Database, DB_CONNECTION } from '../db/constants';
 import { events, venues } from '../db/schema';
 import { EVENTS_ALIAS, EVENTS_MAPPING, SEARCH } from './constants';
-import { EventDocument, toEventDocument } from './events.document';
+import { EventDocument, toEventDocument } from './utils/toEventDocument';
 
 const BATCH_SIZE = 500;
 
@@ -80,6 +80,14 @@ export class ReindexService {
           settings: {
             refresh_interval: '-1',
             number_of_replicas: 0,
+            analysis: {
+              normalizer: {
+                folded: {
+                  type: 'custom',
+                  filter: ['lowercase', 'asciifolding'],
+                },
+              },
+            },
           },
         },
       },
@@ -170,6 +178,8 @@ export class ReindexService {
           venueId: venues.id,
           venueName: venues.name,
           city: venues.city,
+          latitude: venues.latitude,
+          longitude: venues.longitude,
         })
         .from(events)
         .innerJoin(venues, eq(events.venueId, venues.id))
@@ -181,8 +191,19 @@ export class ReindexService {
 
       for (const r of rows) {
         yield toEventDocument(
-          { id: r.id, title: r.title, startsAt: r.startsAt, status: r.status },
-          { id: r.venueId, name: r.venueName, city: r.city },
+          {
+            id: r.id,
+            title: r.title,
+            startsAt: r.startsAt,
+            status: r.status,
+          },
+          {
+            id: r.venueId,
+            name: r.venueName,
+            city: r.city,
+            latitude: r.latitude,
+            longitude: r.longitude,
+          },
         );
       }
 
