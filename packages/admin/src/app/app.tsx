@@ -8,8 +8,6 @@ import { Nav } from './nav/nav';
 export function App() {
   const auth = useAuth();
 
-  console.log(auth);
-
   if (auth.isLoading) {
     return <pre>LOADING...</pre>;
   }

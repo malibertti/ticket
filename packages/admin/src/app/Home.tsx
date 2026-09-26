@@ -8,7 +8,6 @@ export function Home() {
   const groups = auth.user?.profile['cognito:groups'] as string[] | undefined;
   const isAdmin = groups?.includes('admins');
   const [data, setData] = useState<any>();
-  console.log(auth);
 
   async function makeRequest(path: string, method = 'GET') {
     setData(null);
