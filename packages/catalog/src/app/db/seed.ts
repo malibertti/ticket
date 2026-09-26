@@ -6,8 +6,8 @@ import { events, seatMapEntries, venues } from './schema';
 type ProgressFn = (processed: JobProgress) => void;
 
 const SECTIONS = ['Platea A', 'Platea B', 'Campo', 'Popular'];
-const ROWS = 50;
-const SEATS_PER_ROW = 100;
+const ROWS = 15;
+const SEATS_PER_ROW = 20;
 
 const VENUES = [
   {
@@ -155,7 +155,7 @@ export async function seedDb(db: Database, onProgress: ProgressFn) {
   return db.transaction(async (tx) => {
     // Truncate first
     await tx.execute(
-      sql`TRUNCATE TABLE events, seat_map_entries, venues CASCADE`,
+      sql`TRUNCATE TABLE "catalog"."events", "catalog"."seat_map_entries", "catalog"."venues" CASCADE`,
     );
 
     onProgress('truncated');

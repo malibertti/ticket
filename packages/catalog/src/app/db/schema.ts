@@ -3,14 +3,16 @@ import {
   check,
   doublePrecision,
   integer,
-  pgTable,
+  pgSchema,
   primaryKey,
   text,
   timestamp,
   uuid,
 } from 'drizzle-orm/pg-core';
 
-export const venues = pgTable(
+export const catalog = pgSchema('catalog');
+
+export const venues = catalog.table(
   'venues',
   {
     id: uuid('id')
@@ -31,7 +33,7 @@ export const venues = pgTable(
   ],
 );
 
-export const seatMapEntries = pgTable(
+export const seatMapEntries = catalog.table(
   'seat_map_entries',
   {
     venueId: uuid('venue_id')
@@ -48,7 +50,7 @@ export const seatMapEntries = pgTable(
   ],
 );
 
-export const events = pgTable('events', {
+export const events = catalog.table('events', {
   id: uuid('id')
     .primaryKey()
     .default(sql`uuidv7()`),
