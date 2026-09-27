@@ -24,7 +24,8 @@
   },
   "nx": {
     "tags": [
-      "type:infra"
+      "type:infra",
+      "name:infra"
     ],
     "targets": {
       "synth": {

@@ -89,7 +89,7 @@
       "options": {
         "targetName": "test"
       },
-      "exclude": ["packages/catalog-e2e/**/*"]
+      "exclude": ["packages/catalog-e2e/**/*", "packages/inventory-e2e/**/*"]
     }
   ],
   "analytics": false,

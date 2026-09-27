@@ -4,7 +4,8 @@
   "private": true,
   "nx": {
     "tags": [
-      "type:web"
+      "type:web",
+      "name:admin"
     ]
   },
   "dependencies": {

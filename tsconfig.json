@@ -23,6 +23,15 @@
     },
     {
       "path": "./packages/contracts"
+    },
+    {
+      "path": "./packages/inventory-e2e"
+    },
+    {
+      "path": "./packages/inventory"
+    },
+    {
+      "path": "./packages/shared"
     }
   ],
   "compilerOptions": {}

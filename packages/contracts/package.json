@@ -21,7 +21,8 @@
   },
   "nx": {
     "tags": [
-      "type:contract"
+      "type:lib",
+      "name:contracts"
     ]
   }
 }
