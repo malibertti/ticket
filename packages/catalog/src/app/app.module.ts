@@ -1,11 +1,11 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
-import { LoggerModule } from '@org/shared';
+import { AuthModule } from '@org/shared/auth';
+import { HealthModule } from '@org/shared/health';
+import { LoggerModule } from '@org/shared/logger';
 import { schema } from '../env';
-import { AuthModule } from './auth/auth.module';
 import { DbModule } from './db/db.module';
 import { EventsModule } from './events/events.module';
-import { OpsModule } from './ops/ops.module';
 import { QueuesModule } from './queues/queues.module';
 import { SearchModule } from './search/search.module';
 import { VenuesModule } from './venues/venues.module';
@@ -20,7 +20,7 @@ import { VenuesModule } from './venues/venues.module';
     LoggerModule.forRoot('catalog'),
     DbModule,
     AuthModule,
-    OpsModule,
+    HealthModule,
     EventsModule,
     VenuesModule,
     SearchModule,

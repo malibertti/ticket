@@ -1,7 +1,7 @@
 import { Controller, Get, Query } from '@nestjs/common';
 import { type SearchEventsQuery, searchEventsQuery } from '@org/contracts';
-import { Public } from '../auth/public.decorator';
-import { ZodPipe } from '../pipes/zod/zod.pipe';
+import { Public } from '@org/shared/auth';
+import { ZodPipe } from '@org/shared/pipes';
 import { SearchService } from './search.service';
 
 @Controller('search')

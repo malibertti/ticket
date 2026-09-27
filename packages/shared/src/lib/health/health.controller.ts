@@ -1,13 +1,13 @@
 import { Controller, Get, VERSION_NEUTRAL } from '@nestjs/common';
-import { Public } from '../auth/public.decorator';
+import { Public } from '../auth';
 
 @Controller({
-  path: 'ops',
+  path: 'health',
   version: VERSION_NEUTRAL,
 })
-export class OpsController {
+export class HealthController {
   @Public()
-  @Get('health')
+  @Get()
   getHealth() {
     return { status: 'ok' };
   }

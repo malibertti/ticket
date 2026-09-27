@@ -49,7 +49,7 @@ export class LoggerModule {
                       : 'info',
 
                 autoLogging: {
-                  ignore: (req) => req.url?.endsWith('/health') ?? false,
+                  // ignore: (req) => req.url?.endsWith('/health') ?? false,
                 },
               },
             };

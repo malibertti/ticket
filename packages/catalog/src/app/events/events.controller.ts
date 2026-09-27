@@ -13,8 +13,8 @@ import {
   type PageQuery,
   pageQuery,
 } from '@org/contracts';
-import { Public } from '../auth/public.decorator';
-import { ZodPipe } from '../pipes/zod/zod.pipe';
+import { Public } from '@org/shared/auth';
+import { ZodPipe } from '@org/shared/pipes';
 import { EventsService } from './events.service';
 
 @Controller('events')

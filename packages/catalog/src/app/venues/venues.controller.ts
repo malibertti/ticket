@@ -7,9 +7,9 @@ import {
   Res,
 } from '@nestjs/common';
 import { type PageQuery, pageQuery } from '@org/contracts';
+import { Public } from '@org/shared/auth';
+import { ZodPipe } from '@org/shared/pipes';
 import { type Response } from 'express';
-import { Public } from '../auth/public.decorator';
-import { ZodPipe } from '../pipes/zod/zod.pipe';
 import { VenuesService } from './venues.service';
 
 @Controller('venues')

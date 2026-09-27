@@ -8,7 +8,7 @@ import {
   Post,
   Req,
 } from '@nestjs/common';
-import { Roles } from '../auth/roles.decorator';
+import { Roles } from '@org/shared/auth';
 import { ReindexProducer } from '../queues/ReindexProducer';
 import { SeedProducer } from '../queues/SeedProducer';
 import { DbService } from './db.service';

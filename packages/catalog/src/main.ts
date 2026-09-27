@@ -1,7 +1,7 @@
 import { VersioningType } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { NestFactory } from '@nestjs/core';
-import { Logger } from 'nestjs-pino';
+import { Logger } from '@org/shared/logger';
 import { AppModule } from './app/app.module';
 
 async function bootstrap() {

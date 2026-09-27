@@ -62,7 +62,7 @@ export class GatewayStack extends Stack {
       targetType: TargetType.IP,
       deregistrationDelay: Duration.seconds(30),
       healthCheck: {
-        path: '/ops/health',
+        path: '/health',
         healthyHttpCodes: '200',
         interval: Duration.seconds(30),
       },

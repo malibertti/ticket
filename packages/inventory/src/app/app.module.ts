@@ -1,6 +1,8 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
-import { LoggerModule } from '@org/shared';
+import { AuthModule } from '@org/shared/auth';
+import { HealthModule } from '@org/shared/health';
+import { LoggerModule } from '@org/shared/logger';
 import { schema } from '../env';
 
 @Module({
@@ -11,6 +13,8 @@ import { schema } from '../env';
       validate: schema.parse,
     }),
     LoggerModule.forRoot('inventory'),
+    AuthModule,
+    HealthModule,
   ],
   controllers: [],
   providers: [],
