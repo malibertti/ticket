@@ -64,7 +64,8 @@
         ],
         "options": {
           "buildTarget": "inventory:build",
-          "runBuildTargetDependencies": false
+          "runBuildTargetDependencies": false,
+          "port": 9231
         },
         "configurations": {
           "development": {

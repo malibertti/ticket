@@ -63,7 +63,8 @@
         ],
         "options": {
           "buildTarget": "@org/catalog:build",
-          "runBuildTargetDependencies": false
+          "runBuildTargetDependencies": false,
+          "port": 9230
         },
         "configurations": {
           "development": {

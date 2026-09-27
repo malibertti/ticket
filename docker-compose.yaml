@@ -21,7 +21,7 @@ services:
 
   opensearch:
     image: opensearchproject/opensearch:3.5.0
-    profiles: [search]
+    # profiles: [search]
     environment:
       discovery.type: single-node
       DISABLE_SECURITY_PLUGIN: 'true'
