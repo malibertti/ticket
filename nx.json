@@ -90,6 +90,13 @@
         "targetName": "test"
       },
       "exclude": ["packages/catalog-e2e/**/*", "packages/inventory-e2e/**/*"]
+    },
+    {
+      "plugin": "@nx/jest/plugin",
+      "options": {
+        "targetName": "e2e"
+      },
+      "include": ["packages/inventory-e2e/**/*"]
     }
   ],
   "analytics": false,

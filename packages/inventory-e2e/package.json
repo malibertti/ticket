@@ -9,16 +9,11 @@
     ],
     "targets": {
       "e2e": {
-        "executor": "@nx/jest:jest",
-        "outputs": [
-          "{projectRoot}/test-output/jest/coverage"
-        ],
         "dependsOn": [
           "inventory:build",
           "inventory:serve"
         ],
         "options": {
-          "jestConfig": "packages/inventory-e2e/jest.config.cts",
           "passWithNoTests": true
         }
       }
