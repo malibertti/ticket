@@ -43,6 +43,18 @@ services:
       DISABLE_SECURITY_DASHBOARDS_PLUGIN: 'true'
     depends_on: [opensearch]
 
+  dynamodb-local:
+    image: amazon/dynamodb-local:3.3.1
+    command: -jar DynamoDBLocal.jar -sharedDb -dbPath /home/dynamodblocal/data
+    working_dir: /home/dynamodblocal
+    user: root
+    restart: unless-stopped
+    ports:
+      - '8000:8000'
+    volumes:
+      - dynamodb-data:/home/dynamodblocal/data
+
 volumes:
   pgdata:
   osdata:
+  dynamodb-data:

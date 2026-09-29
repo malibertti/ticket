@@ -1,20 +1,15 @@
 import { Module } from '@nestjs/common';
-import { ConfigModule } from '@nestjs/config';
-import { AuthModule } from '@org/shared/auth';
 import { HealthModule } from '@org/shared/health';
 import { LoggerModule } from '@org/shared/logger';
-import { schema } from '../env';
+import { EnvModule } from './env/env.module';
+import { SeatsModule } from './seats/seats.module';
 
 @Module({
   imports: [
-    ConfigModule.forRoot({
-      isGlobal: true,
-      cache: true,
-      validate: schema.parse,
-    }),
+    EnvModule, //
     LoggerModule.forRoot('inventory'),
-    AuthModule,
     HealthModule,
+    SeatsModule,
   ],
   controllers: [],
   providers: [],

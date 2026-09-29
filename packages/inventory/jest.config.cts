@@ -11,6 +11,7 @@ swcJestConfig.swcrc = false;
 module.exports = {
   displayName: 'inventory',
   preset: '../../jest.preset.js',
+  testMatch: ['<rootDir>/src/**/*.spec.ts', '!**/*.int.spec.ts'],
   testEnvironment: 'node',
   transform: {
     '^.+\\.[tj]s$': ['@swc/jest', swcJestConfig],
