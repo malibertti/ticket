@@ -1,8 +1,8 @@
 import { BullModule } from '@nestjs/bullmq';
 import { Module } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
 import { createIORedisClient, RedisConnection } from 'bullmq';
 import { Valkey } from 'iovalkey';
+import { EnvService } from '../env/env.service';
 import { FLOWS, QUEUES } from './constants';
 import { ReindexProducer } from './ReindexProducer';
 import { SeedProducer } from './SeedProducer';
@@ -10,12 +10,12 @@ import { SeedProducer } from './SeedProducer';
 @Module({
   imports: [
     BullModule.forRootAsync({
-      inject: [ConfigService],
-      useFactory(cs: ConfigService) {
+      inject: [EnvService],
+      useFactory(env: EnvService) {
         RedisConnection.clientFactory = (opts) =>
           createIORedisClient(new Valkey(opts));
 
-        const url = new URL(cs.get('VALKEY_QUEUE_URL')!);
+        const url = new URL(env.get('VALKEY_QUEUE_URL')!);
 
         return {
           connection: {

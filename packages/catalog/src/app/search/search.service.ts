@@ -1,7 +1,7 @@
 import { Inject, Injectable, Logger, OnModuleInit } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
 import { Client } from '@opensearch-project/opensearch';
 import { SearchEventsQuery } from '@org/contracts';
+import { EnvService } from '../env/env.service';
 import {
   EVENTS_ALIAS,
   EVENTS_INDEX_V1,
@@ -17,7 +17,7 @@ export class SearchService implements OnModuleInit {
 
   constructor(
     @Inject(SEARCH) private readonly client: Client,
-    private readonly cs: ConfigService,
+    private readonly env: EnvService,
   ) {}
 
   async onModuleInit() {
@@ -37,7 +37,7 @@ export class SearchService implements OnModuleInit {
               [EVENTS_ALIAS]: {},
             },
             settings: {
-              number_of_replicas: this.cs.getOrThrow('OPENSEARCH_REPLICAS'),
+              number_of_replicas: this.env.get('OPENSEARCH_REPLICAS'),
               analysis: indexSettingsAnalysis,
             },
           },

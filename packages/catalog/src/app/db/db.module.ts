@@ -2,6 +2,7 @@ import { Inject, Module, OnModuleDestroy } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { drizzle } from 'drizzle-orm/node-postgres';
 import { Pool } from 'pg';
+import { EnvService } from '../env/env.service.js';
 import { QueuesModule } from '../queues/queues.module.js';
 import { DB_CONNECTION, DB_POOL } from './constants.js';
 import { DbController } from './db.controller.js';
@@ -14,16 +15,16 @@ import { SeedProcessor } from './seed.processor.js';
     {
       provide: DB_POOL,
       inject: [ConfigService],
-      useFactory(cs: ConfigService) {
+      useFactory(env: EnvService) {
         return new Pool({
-          host: cs.get('DB_HOST'),
-          port: cs.get('DB_PORT'),
-          user: cs.get('DB_USER'),
-          password: cs.get('DB_PASSWORD'),
-          database: cs.get('DB_NAME'),
-          max: cs.get('DB_POOL_MAX'),
-          idleTimeoutMillis: cs.get('DB_IDLE_TIMEOUT_MS'),
-          ssl: cs.get('DB_SSL') ? { rejectUnauthorized: false } : false,
+          host: env.get('DB_HOST'),
+          port: env.get('DB_PORT'),
+          user: env.get('DB_USER'),
+          password: env.get('DB_PASSWORD'),
+          database: env.get('DB_NAME'),
+          max: env.get('DB_POOL_MAX'),
+          idleTimeoutMillis: env.get('DB_IDLE_TIMEOUT_MS'),
+          ssl: env.get('DB_SSL') ? { rejectUnauthorized: false } : false,
         });
       },
     },

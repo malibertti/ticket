@@ -1,10 +1,10 @@
 import { Inject, Injectable, Logger } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
 import { Client } from '@opensearch-project/opensearch';
 import { JobProgress } from 'bullmq';
 import { asc, count, eq, gt } from 'drizzle-orm';
 import { type Database, DB_CONNECTION } from '../db/constants';
 import { events, venues } from '../db/schema';
+import { EnvService } from '../env/env.service';
 import {
   EVENTS_ALIAS,
   EVENTS_MAPPING,
@@ -31,7 +31,7 @@ export class ReindexService {
   constructor(
     @Inject(DB_CONNECTION) private readonly db: Database,
     @Inject(SEARCH) private readonly client: Client,
-    private readonly cs: ConfigService,
+    private readonly env: EnvService,
   ) {}
 
   async run(onProgress: ProgressFn): Promise<ReindexResult> {
@@ -85,7 +85,7 @@ export class ReindexService {
           mappings: EVENTS_MAPPING,
           settings: {
             refresh_interval: '-1',
-            number_of_replicas: this.cs.getOrThrow('OPENSEARCH_REPLICAS'),
+            number_of_replicas: this.env.get('OPENSEARCH_REPLICAS'),
             analysis: indexSettingsAnalysis,
           },
         },
@@ -128,7 +128,7 @@ export class ReindexService {
       index,
       body: {
         refresh_interval: '1s',
-        number_of_replicas: this.cs.getOrThrow('OPENSEARCH_REPLICAS'),
+        number_of_replicas: this.env.get('OPENSEARCH_REPLICAS'),
       },
     });
 
