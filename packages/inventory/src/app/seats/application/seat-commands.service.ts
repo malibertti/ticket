@@ -9,7 +9,6 @@ import { decide, evolve } from '../domain/seat.decider';
 import { SeatError } from '../domain/seat.errors';
 import { SeatEvent } from '../domain/seat.events';
 import { initialState, SeatState } from '../domain/seat.state';
-import { seatStreamId } from '../seat-stream-id';
 import {
   SeatCommandRejected,
   SeatRejection,
@@ -149,3 +148,13 @@ const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 const backoffMs = (attempt: number) =>
   50 * 2 ** (attempt - 1) + Math.random() * 50; // ~50, ~100, jittered
+
+export function seatStreamId(eventId: string, seatId: string): string {
+  const sep = '#';
+
+  if (eventId.includes(sep) || seatId.includes(sep)) {
+    throw new Error(`Ids must not contain "${sep}": ${eventId}, ${seatId}`);
+  }
+
+  return `seat${sep}${eventId}${sep}${seatId}`;
+}

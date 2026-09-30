@@ -9,7 +9,7 @@ const swcJestConfig = JSON.parse(
 swcJestConfig.swcrc = false;
 
 module.exports = {
-  displayName: 'inventory',
+  displayName: '@org/inventory',
   preset: '../../jest.preset.js',
   testMatch: ['<rootDir>/src/**/*.spec.ts', '!**/*.int.spec.ts'],
   testEnvironment: 'node',

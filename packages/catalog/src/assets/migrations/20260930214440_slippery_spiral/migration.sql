@@ -1,0 +1,1 @@
+ALTER TABLE "catalog"."venues" RENAME COLUMN "seat_map_version" TO "layout_version";

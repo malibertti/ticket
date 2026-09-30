@@ -24,25 +24,18 @@ export class VenuesController {
 
   @Get(':id')
   @Public()
-  getVenue(@Param('id', ParseUUIDPipe) id: string) {
-    return this.venues.getVenue(id);
-  }
-
-  @Get(':id/seat-map')
-  @Public()
-  async seatMap(
+  async getVenue(
     @Param('id', ParseUUIDPipe) id: string,
     @Res({ passthrough: true }) res: Response,
   ) {
     const venue = await this.venues.getVenue(id);
-    const seatMap = await this.venues.seatMap(id);
 
     res.set({
       'Cache-Control': 'public, max-age=3600, stale-while-revalidate=86400',
-      ETag: `W/"seatmap-${id}-v${venue.seatMapVersion}"`,
+      ETag: `W/"seatmap-${id}-v${venue.layoutVersion}"`,
       Vary: 'Accept-Encoding',
     });
 
-    return seatMap;
+    return venue;
   }
 }

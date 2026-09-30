@@ -79,6 +79,12 @@
         "options": {
           "passWithNoTests": true
         }
+      },
+      "test-int": {
+        "executor": "@nx/jest:jest",
+        "options": {
+          "jestConfig": "packages/catalog/jest.int.config.cts"
+        }
       }
     }
   },
@@ -94,6 +100,7 @@
     "@org/shared": "workspace:*",
     "bullmq": "^6.3.8",
     "drizzle-orm": "1.0.0-rc.4",
+    "drizzle-zod": "^0.8.3",
     "iovalkey": "^0.4.0",
     "pg": "^8.23.0",
     "reflect-metadata": "^0.2.0",

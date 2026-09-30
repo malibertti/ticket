@@ -1,4 +1,3 @@
-import { CreateEventInput } from '@org/contracts';
 import { useState } from 'react';
 import { useForm, type SubmitHandler } from 'react-hook-form';
 import { useAuth } from 'react-oidc-context';
@@ -6,6 +5,14 @@ import styles from './FormEvents.module.scss';
 import { randomEvent } from './utils';
 
 const { VITE_API_URL } = import.meta.env;
+
+type CreateEventInput = {
+  venueId: string;
+  title: string;
+  startsAt: string;
+  onSaleAt: string;
+  status: string;
+};
 
 export function FormEvents() {
   const auth = useAuth();

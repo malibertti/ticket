@@ -1,8 +1,13 @@
 import { Inject, Injectable, Logger, NotFoundException } from '@nestjs/common';
-import { CreateEventInput, Page, PageQuery } from '@org/contracts';
+import { Page, PageQuery } from '@org/contracts';
 import { desc, eq, sql } from 'drizzle-orm';
 import { type Database, DB_CONNECTION } from '../db/constants';
-import { events, venues } from '../db/schema';
+import {
+  CreateEventInput,
+  events,
+  eventSectionPrices,
+  venues,
+} from '../db/schema';
 import { SearchService } from '../search/search.service';
 import { toEventDoc } from '../search/utils';
 
@@ -38,13 +43,36 @@ export class EventsService {
   }
 
   async getEvent(id: string) {
-    const [row] = await this.db.select().from(events).where(eq(events.id, id));
+    const rows = await this.db
+      .select({
+        event: events,
+        section: eventSectionPrices.section,
+        priceCents: eventSectionPrices.priceCents,
+        currency: eventSectionPrices.currency,
+      })
+      .from(events)
+      .leftJoin(eventSectionPrices, eq(eventSectionPrices.eventId, id))
+      .where(eq(events.id, id));
 
-    if (!row) {
+    const event = rows[0]?.event;
+    if (!event) {
       throw new NotFoundException('Event not found');
     }
 
-    return row;
+    return {
+      ...event,
+      prices: rows.flatMap((row) =>
+        row.section == null
+          ? []
+          : [
+              {
+                section: row.section,
+                priceCents: row.priceCents,
+                currency: row.currency,
+              },
+            ],
+      ),
+    };
   }
 
   async createEvent(input: CreateEventInput) {

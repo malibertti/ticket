@@ -6,6 +6,7 @@ import { DbModule } from './db/db.module';
 import { EnvModule } from './env/env.module';
 import { EventsModule } from './events/events.module';
 import { QueuesModule } from './queues/queues.module';
+import { SalesModule } from './sales/sales.module';
 import { SearchModule } from './search/search.module';
 import { VenuesModule } from './venues/venues.module';
 
@@ -21,6 +22,8 @@ import { VenuesModule } from './venues/venues.module';
     SearchModule,
     LoggerModule,
     QueuesModule,
+    SalesModule,
   ],
+  controllers: [],
 })
 export class AppModule {}

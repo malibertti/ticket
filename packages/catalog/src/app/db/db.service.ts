@@ -7,8 +7,8 @@ export class DbService {
   constructor(@Inject(DB_CONNECTION) private readonly db: Database) {}
 
   truncate() {
-    return this.db.execute(sql`
-      TRUNCATE TABLE "catalog"."events", "catalog"."seat_map_entries", "catalog"."venues" CASCADE
-    `);
+    return this.db.execute(
+      sql`TRUNCATE TABLE "catalog"."event_section_prices", "catalog"."events", "catalog"."venues" CASCADE`,
+    );
   }
 }

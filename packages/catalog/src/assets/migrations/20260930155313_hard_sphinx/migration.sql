@@ -1,0 +1,2 @@
+ALTER TABLE "catalog"."price_tiers" RENAME CONSTRAINT "price_tiers_currency_iso" TO "price_tiers_currency_usd";--> statement-breakpoint
+ALTER TABLE "catalog"."price_tiers" DROP CONSTRAINT "price_tiers_currency_usd", ADD CONSTRAINT "price_tiers_currency_usd" CHECK ("currency" = 'USD');

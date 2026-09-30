@@ -1,0 +1,388 @@
+{
+  "version": "8",
+  "dialect": "postgres",
+  "id": "ede98a44-acf1-4076-85ac-a42e417f545c",
+  "prevIds": [
+    "e1ce6cdd-9fd2-45eb-88b3-2d5bd87217fa"
+  ],
+  "ddl": [
+    {
+      "name": "catalog",
+      "entityType": "schemas"
+    },
+    {
+      "isRlsEnabled": false,
+      "name": "event_section_prices",
+      "entityType": "tables",
+      "schema": "catalog"
+    },
+    {
+      "isRlsEnabled": false,
+      "name": "events",
+      "entityType": "tables",
+      "schema": "catalog"
+    },
+    {
+      "isRlsEnabled": false,
+      "name": "venues",
+      "entityType": "tables",
+      "schema": "catalog"
+    },
+    {
+      "type": "uuid",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "event_id",
+      "entityType": "columns",
+      "schema": "catalog",
+      "table": "event_section_prices"
+    },
+    {
+      "type": "text",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "section",
+      "entityType": "columns",
+      "schema": "catalog",
+      "table": "event_section_prices"
+    },
+    {
+      "type": "integer",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "price_cents",
+      "entityType": "columns",
+      "schema": "catalog",
+      "table": "event_section_prices"
+    },
+    {
+      "type": "text",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "'USD'",
+      "generated": null,
+      "identity": null,
+      "name": "currency",
+      "entityType": "columns",
+      "schema": "catalog",
+      "table": "event_section_prices"
+    },
+    {
+      "type": "timestamp with time zone",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "now()",
+      "generated": null,
+      "identity": null,
+      "name": "updated_at",
+      "entityType": "columns",
+      "schema": "catalog",
+      "table": "event_section_prices"
+    },
+    {
+      "type": "uuid",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "uuidv7()",
+      "generated": null,
+      "identity": null,
+      "name": "id",
+      "entityType": "columns",
+      "schema": "catalog",
+      "table": "events"
+    },
+    {
+      "type": "uuid",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "venue_id",
+      "entityType": "columns",
+      "schema": "catalog",
+      "table": "events"
+    },
+    {
+      "type": "text",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "title",
+      "entityType": "columns",
+      "schema": "catalog",
+      "table": "events"
+    },
+    {
+      "type": "timestamp with time zone",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "starts_at",
+      "entityType": "columns",
+      "schema": "catalog",
+      "table": "events"
+    },
+    {
+      "type": "timestamp with time zone",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "on_sale_at",
+      "entityType": "columns",
+      "schema": "catalog",
+      "table": "events"
+    },
+    {
+      "type": "text",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "'draft'",
+      "generated": null,
+      "identity": null,
+      "name": "status",
+      "entityType": "columns",
+      "schema": "catalog",
+      "table": "events"
+    },
+    {
+      "type": "timestamp with time zone",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "now()",
+      "generated": null,
+      "identity": null,
+      "name": "created_at",
+      "entityType": "columns",
+      "schema": "catalog",
+      "table": "events"
+    },
+    {
+      "type": "uuid",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "gen_random_uuid()",
+      "generated": null,
+      "identity": null,
+      "name": "id",
+      "entityType": "columns",
+      "schema": "catalog",
+      "table": "venues"
+    },
+    {
+      "type": "text",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "name",
+      "entityType": "columns",
+      "schema": "catalog",
+      "table": "venues"
+    },
+    {
+      "type": "text",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "city",
+      "entityType": "columns",
+      "schema": "catalog",
+      "table": "venues"
+    },
+    {
+      "type": "double precision",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "latitude",
+      "entityType": "columns",
+      "schema": "catalog",
+      "table": "venues"
+    },
+    {
+      "type": "double precision",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "longitude",
+      "entityType": "columns",
+      "schema": "catalog",
+      "table": "venues"
+    },
+    {
+      "type": "integer",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "1",
+      "generated": null,
+      "identity": null,
+      "name": "layout_version",
+      "entityType": "columns",
+      "schema": "catalog",
+      "table": "venues"
+    },
+    {
+      "type": "jsonb",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "layout",
+      "entityType": "columns",
+      "schema": "catalog",
+      "table": "venues"
+    },
+    {
+      "type": "timestamp with time zone",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "now()",
+      "generated": null,
+      "identity": null,
+      "name": "created_at",
+      "entityType": "columns",
+      "schema": "catalog",
+      "table": "venues"
+    },
+    {
+      "nameExplicit": false,
+      "columns": [
+        "event_id"
+      ],
+      "schemaTo": "catalog",
+      "tableTo": "events",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "NO ACTION",
+      "onDelete": "CASCADE",
+      "name": "event_section_prices_event_id_events_id_fkey",
+      "entityType": "fks",
+      "schema": "catalog",
+      "table": "event_section_prices"
+    },
+    {
+      "nameExplicit": false,
+      "columns": [
+        "venue_id"
+      ],
+      "schemaTo": "catalog",
+      "tableTo": "venues",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION",
+      "name": "events_venue_id_venues_id_fkey",
+      "entityType": "fks",
+      "schema": "catalog",
+      "table": "events"
+    },
+    {
+      "columns": [
+        "event_id",
+        "section"
+      ],
+      "nameExplicit": false,
+      "name": "event_section_prices_pkey",
+      "entityType": "pks",
+      "schema": "catalog",
+      "table": "event_section_prices"
+    },
+    {
+      "columns": [
+        "id"
+      ],
+      "nameExplicit": false,
+      "name": "events_pkey",
+      "schema": "catalog",
+      "table": "events",
+      "entityType": "pks"
+    },
+    {
+      "columns": [
+        "id"
+      ],
+      "nameExplicit": false,
+      "name": "venues_pkey",
+      "schema": "catalog",
+      "table": "venues",
+      "entityType": "pks"
+    },
+    {
+      "value": "\"price_cents\" >= 0",
+      "name": "event_section_prices_non_negative",
+      "entityType": "checks",
+      "schema": "catalog",
+      "table": "event_section_prices"
+    },
+    {
+      "value": "\"currency\" = 'USD'",
+      "name": "event_section_prices_currency_usd",
+      "entityType": "checks",
+      "schema": "catalog",
+      "table": "event_section_prices"
+    },
+    {
+      "value": "\"latitude\" BETWEEN -90 AND 90",
+      "name": "venues_lat_range",
+      "entityType": "checks",
+      "schema": "catalog",
+      "table": "venues"
+    },
+    {
+      "value": "\"longitude\" BETWEEN -180 AND 180",
+      "name": "venues_lng_range",
+      "entityType": "checks",
+      "schema": "catalog",
+      "table": "venues"
+    }
+  ],
+  "renames": [
+    "catalog.venues.seat_map_version->catalog.venues.layout_version"
+  ]
+}

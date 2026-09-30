@@ -448,6 +448,9 @@ importers:
       drizzle-orm:
         specifier: 1.0.0-rc.4
         version: 1.0.0-rc.4(@sinclair/typebox@0.34.52)(@types/pg@8.23.1)(pg@8.23.0)(zod@4.6.5)
+      drizzle-zod:
+        specifier: ^0.8.3
+        version: 0.8.3(drizzle-orm@1.0.0-rc.4(@sinclair/typebox@0.34.52)(@types/pg@8.23.1)(pg@8.23.0)(zod@4.6.5))(zod@4.6.5)
       iovalkey:
         specifier: ^0.4.0
         version: 0.4.0(supports-color@8.1.1)
@@ -567,6 +570,9 @@ importers:
       '@nestjs/platform-express':
         specifier: ^11.0.0
         version: 11.2.6(@nestjs/common@11.2.6(reflect-metadata@0.2.2)(rxjs@7.8.2)(supports-color@8.1.1))(@nestjs/core@11.2.6)(supports-color@8.1.1)
+      '@org/contracts':
+        specifier: workspace:*
+        version: link:../contracts
       '@org/shared':
         specifier: workspace:*
         version: link:../shared
@@ -5174,6 +5180,12 @@ packages:
         optional: true
       zod:
         optional: true
+
+  drizzle-zod@0.8.3:
+    resolution: {integrity: sha512-66yVOuvGhKJnTdiqj1/Xaaz9/qzOdRJADpDa68enqS6g3t0kpNkwNYjUuaeXgZfO/UWuIM9HIhSlJ6C5ZraMww==}
+    peerDependencies:
+      drizzle-orm: '>=0.36.0'
+      zod: ^3.25.0 || ^4.0.0
 
   dunder-proto@1.0.1:
     resolution: {integrity: sha512-KIN/nDJBQRcXw0MLVhZE9iQHmG68qAVIBg9CqmUYjmQIhgij9U5MFvrqkUL5FbtyyzZuOeOt0zdeRe4UY7ct+A==}
@@ -14332,6 +14344,11 @@ snapshots:
       '@sinclair/typebox': 0.34.52
       '@types/pg': 8.23.1
       pg: 8.23.0
+      zod: 4.6.5
+
+  drizzle-zod@0.8.3(drizzle-orm@1.0.0-rc.4(@sinclair/typebox@0.34.52)(@types/pg@8.23.1)(pg@8.23.0)(zod@4.6.5))(zod@4.6.5):
+    dependencies:
+      drizzle-orm: 1.0.0-rc.4(@sinclair/typebox@0.34.52)(@types/pg@8.23.1)(pg@8.23.0)(zod@4.6.5)
       zod: 4.6.5
 
   dunder-proto@1.0.1:

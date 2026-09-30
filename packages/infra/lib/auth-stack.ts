@@ -1,4 +1,4 @@
-import { CfnOutput, Stack, StackProps } from 'aws-cdk-lib';
+import { CfnOutput, Duration, Stack, StackProps } from 'aws-cdk-lib';
 import {
   AccountRecovery,
   CfnManagedLoginBranding,
@@ -33,6 +33,9 @@ export class AuthStack extends Stack {
 
     this.userPoolClient = new UserPoolClient(this, 'UserPoolClient', {
       userPool: this.userPool,
+      accessTokenValidity: Duration.hours(24),
+      idTokenValidity: Duration.hours(24),
+      refreshTokenValidity: Duration.days(30),
       authFlows: { userSrp: false },
       oAuth: {
         flows: { authorizationCodeGrant: true },
