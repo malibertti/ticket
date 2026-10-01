@@ -1,5 +1,4 @@
 import { Inject, Module, OnModuleDestroy } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
 import { relations } from '@org/catalog-schema/schema';
 import { drizzle } from 'drizzle-orm/node-postgres';
 import { Pool } from 'pg';
@@ -14,7 +13,7 @@ import { SeedProcessor } from './seed.processor.js';
   providers: [
     {
       provide: DB_POOL,
-      inject: [ConfigService],
+      inject: [EnvService],
       useFactory(env: EnvService) {
         return new Pool({
           host: env.get('DB_HOST'),

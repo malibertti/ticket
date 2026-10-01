@@ -76,7 +76,6 @@ export class CatalogStack extends Stack {
         OPENSEARCH_URL: `https://${props.searchDomain.domainEndpoint}`,
         OPENSEARCH_AUTH: 'aws',
         OPENSEARCH_REPLICAS: '0',
-        // VALKEY_URL: props.cacheUrl,
         VALKEY_QUEUE_URL: props.cacheUrl,
       },
       secrets: {

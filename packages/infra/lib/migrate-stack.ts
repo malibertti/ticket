@@ -33,7 +33,7 @@ export class MigrateStack extends Stack {
           beforeInstall: () => [],
           afterBundling(inputDir, outputDir) {
             return [
-              `cp -r ${inputDir}/packages/catalog/src/assets/migrations ${outputDir}/migrations`,
+              `cp -r ${inputDir}/packages/catalog-schema/src/migrations ${outputDir}/migrations`,
             ];
           },
         },

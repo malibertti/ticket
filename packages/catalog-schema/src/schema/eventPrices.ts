@@ -32,17 +32,18 @@ export const eventPrices = catalog.table(
     primaryKey({
       columns: [t.eventId, t.section],
     }),
-    check('event_section_prices_non_negative', sql`${t.priceCents} >= 0`),
+    check('event_prices_non_negative', sql`${t.priceCents} >= 0`),
     check(
-      'event_section_prices_currency_usd',
+      'event_prices_currency_usd',
       sql`${t.currency} = ${DEFAULT_SALES_CURRENCY}`,
     ),
   ],
 );
 
-export const createEventSectionPrices = createInsertSchema(events).omit({
-  id: true,
-  createdAt: true,
+export const createEventPrices = createInsertSchema(eventPrices).omit({
+  eventId: true,
+  currency: true,
+  updatedAt: true,
 });
 
-export type EventSectionPricesInput = z.infer<typeof createEventSectionPrices>;
+export type EventSectionPricesInput = z.infer<typeof createEventPrices>;

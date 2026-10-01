@@ -27,7 +27,6 @@ export function randomEvent(venueId = ''): EventFormValues {
     title: `${faker.person.fullName()} — Live`,
     startsAt: toLocalInput(startsAt),
     onSaleAt: toLocalInput(onSaleAt),
-    status: 'draft',
   };
 }
 

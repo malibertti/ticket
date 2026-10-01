@@ -10,7 +10,7 @@ import {
 } from 'drizzle-orm/pg-core';
 import { createInsertSchema } from 'drizzle-zod';
 import z from 'zod';
-import { VenueLayout } from '../types/venues.js';
+import { VenueLayout, venueLayoutSchema } from '../types/venues.js';
 import { catalog } from './schema.js';
 
 export const venues = catalog.table(
@@ -35,7 +35,9 @@ export const venues = catalog.table(
   ],
 );
 
-export const createVenueInput = createInsertSchema(venues).omit({
+export const createVenueInput = createInsertSchema(venues, {
+  layout: venueLayoutSchema,
+}).omit({
   id: true,
   createdAt: true,
 });

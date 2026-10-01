@@ -50,7 +50,6 @@ export function FormEvents() {
         title: data.title,
         startsAt: new Date(data.startsAt).toISOString(),
         onSaleAt: new Date(data.onSaleAt).toISOString(),
-        status: data.status,
       }),
     });
     const result = await response.json();
@@ -128,15 +127,6 @@ export function FormEvents() {
                 {errors.onSaleAt && <small>{errors.onSaleAt.message}</small>}
               </label>
             </div>
-
-            <label>
-              Status
-              <input
-                aria-invalid={!!errors.status || undefined}
-                {...register('status', { required: 'Status is required' })}
-              />
-              {errors.status && <small>{errors.status.message}</small>}
-            </label>
           </fieldset>
           <button
             aria-busy={isSubmitting}

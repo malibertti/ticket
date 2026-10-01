@@ -8,9 +8,11 @@ export function useTheme() {
   const systemPrefersColorScheme = usePrefersColorScheme();
   const [theme, setTheme] = useLocalStorageState<Theme>('theme', {
     defaultValue() {
-      if (systemPrefersColorScheme !== 'no-preference') {
-        return systemPrefersColorScheme;
+      if (systemPrefersColorScheme === 'no-preference') {
+        return undefined;
       }
+
+      return systemPrefersColorScheme;
     },
   });
 

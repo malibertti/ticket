@@ -1,21 +1,9 @@
 import { defineRelations } from 'drizzle-orm';
-import * as schema from './index';
+import { eventPrices } from './eventPrices.js';
+import { events } from './events.js';
+import { venues } from './venues.js';
 
-export const relations = defineRelations(schema, () => ({
-  // venues: {
-  //   events: r.many.events(),
-  //   seatMapEntries: r.many.seatMapEntries(),
-  // },
-  // events: {
-  //   venue: r.one.venues({
-  //     from: r.events.venueId,
-  //     to: r.venues.id,
-  //   }),
-  // },
-  // seatMapEntries: {
-  //   venue: r.one.venues({
-  //     from: r.seatMapEntries.venueId,
-  //     to: r.venues.id,
-  //   }),
-  // },
-}));
+export const relations = defineRelations(
+  { venues, events, eventPrices },
+  () => ({}),
+);

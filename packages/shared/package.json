@@ -6,9 +6,9 @@
   "types": "./src/index.ts",
   "exports": {
     "./*": {
-      "types": "./src/lib/*/index.ts",
-      "import": "./src/lib/*/index.ts",
-      "default": "./src/lib/*/index.ts"
+      "types": "./src/*/index.ts",
+      "import": "./src/*/index.ts",
+      "default": "./src/*/index.ts"
     },
     "./package.json": "./package.json"
   },

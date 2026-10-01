@@ -12,7 +12,7 @@ import {
   type CreateEventInput,
 } from '@org/catalog-schema/schema';
 import { type PageQuery, pageQuery } from '@org/catalog-schema/types';
-import { Public } from '@org/shared/auth';
+import { Public, Roles } from '@org/shared/auth';
 import { ZodPipe } from '@org/shared/pipes';
 import { EventsService } from './events.service';
 
@@ -33,6 +33,7 @@ export class EventsController {
   }
 
   @Post()
+  @Roles(['admins'])
   createEvent(@Body(new ZodPipe(createEventInput)) body: CreateEventInput) {
     return this.events.createEvent(body);
   }

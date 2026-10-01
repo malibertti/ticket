@@ -7,7 +7,7 @@ export abstract class EventStore {
 
 export interface DomainEvent {
   type: string;
-  holdId: string;
+  // holdId: string;
 }
 
 export interface StoredEvent<E extends DomainEvent = DomainEvent> {

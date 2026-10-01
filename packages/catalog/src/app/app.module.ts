@@ -20,7 +20,6 @@ import { VenuesModule } from './venues/venues.module';
     EventsModule,
     VenuesModule,
     SearchModule,
-    LoggerModule,
     QueuesModule,
     SalesModule,
   ],

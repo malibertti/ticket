@@ -26,6 +26,7 @@ export const events = catalog.table('events', {
 export const createEventInput = createInsertSchema(events).omit({
   id: true,
   createdAt: true,
+  status: true,
 });
 
 export type CreateEventInput = z.infer<typeof createEventInput>;

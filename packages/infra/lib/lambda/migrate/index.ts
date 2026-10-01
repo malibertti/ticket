@@ -33,7 +33,11 @@ export async function handler() {
   );
   const db = drizzle({ client });
 
-  await migrate(db, { migrationsFolder: './migrations' });
+  await migrate(db, {
+    migrationsFolder: './migrations',
+    migrationsTable: '__drizzle_migrations_catalog',
+  });
+
   console.log('migrate end');
 
   // app role
@@ -44,18 +48,18 @@ export async function handler() {
   END $$;`);
   await client.query('GRANT rds_iam TO app');
   await client.query('GRANT CONNECT ON DATABASE ticketing TO app');
-  await client.query('GRANT USAGE ON SCHEMA public TO app');
+  await client.query('GRANT USAGE ON SCHEMA catalog TO app');
   await client.query(
-    'GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA public TO app',
+    'GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA catalog TO app',
   );
   await client.query(
-    'GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA public TO app',
+    'GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA catalog TO app',
   );
   await client.query(
-    `ALTER DEFAULT PRIVILEGES FOR ROLE postgres IN SCHEMA public GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO app`,
+    `ALTER DEFAULT PRIVILEGES FOR ROLE postgres IN SCHEMA catalog GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO app`,
   );
   await client.query(
-    `ALTER DEFAULT PRIVILEGES FOR ROLE postgres IN SCHEMA public GRANT USAGE, SELECT ON SEQUENCES TO app`,
+    `ALTER DEFAULT PRIVILEGES FOR ROLE postgres IN SCHEMA catalog GRANT USAGE, SELECT ON SEQUENCES TO app`,
   );
 
   // Close

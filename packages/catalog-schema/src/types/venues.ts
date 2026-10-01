@@ -40,3 +40,7 @@ export const venueLayoutSchema = z.object({
 });
 
 export type VenueLayout = z.infer<typeof venueLayoutSchema>;
+
+export function sectionCodes(layout: VenueLayout): string[] {
+  return layout.sections.map((section) => section.code);
+}

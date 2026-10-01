@@ -4,9 +4,11 @@ import {
   Injectable,
   Logger,
   NotFoundException,
+  UnprocessableEntityException,
 } from '@nestjs/common';
-import { eventPrices, events } from '@org/catalog-schema/schema';
-import { eq, sql } from 'drizzle-orm';
+import { eventPrices, events, venues } from '@org/catalog-schema/schema';
+import { sectionCodes } from '@org/catalog-schema/types';
+import { eq } from 'drizzle-orm';
 import { type Database, DB_CONNECTION } from '../db/constants';
 
 @Injectable()
@@ -21,10 +23,14 @@ export class SalesService {
   async openSales(eventId: string) {
     await this.db.transaction(async (tx) => {
       const [event] = await tx
-        .select({ status: events.status })
+        .select({
+          status: events.status,
+          layout: venues.layout,
+        })
         .from(events)
+        .innerJoin(venues, eq(venues.id, events.venueId))
         .where(eq(events.id, eventId))
-        .for('update'); // pricing edits lock the same row, so they can't race this
+        .for('no key update', { of: events });
 
       if (!event) throw new NotFoundException({ error: 'EVENT_NOT_FOUND' });
       if (event.status === 'on_sale') return; // idempotent
@@ -35,13 +41,22 @@ export class SalesService {
         });
       }
 
-      const [{ prices }] = await tx
-        .select({ prices: sql<number>`count(*)::int` })
+      const priced = await tx
+        .select({ section: eventPrices.section })
         .from(eventPrices)
         .where(eq(eventPrices.eventId, eventId));
 
-      if (prices === 0) {
-        throw new ConflictException({ error: 'EVENT_HAS_NO_PRICING' });
+      const { missingSections, unknownSections } = compareSections(
+        sectionCodes(event.layout),
+        priced.map((p) => p.section),
+      );
+
+      if (missingSections.length || unknownSections.length) {
+        throw new UnprocessableEntityException({
+          error: 'PRICING_DOES_NOT_MATCH_LAYOUT',
+          missingSections,
+          unknownSections,
+        });
       }
 
       await tx
@@ -49,6 +64,8 @@ export class SalesService {
         .set({ status: 'on_sale' })
         .where(eq(events.id, eventId));
     });
+
+    // TODO: Opening sales doesn't update the search index, so search keeps showing the event as draft.
 
     return {
       eventId,
@@ -85,4 +102,15 @@ export class SalesService {
     if (!event) throw new NotFoundException({ error: 'EVENT_NOT_FOUND' });
     return event;
   }
+}
+
+/** Every layout section must have a price, and every price must point at a layout section. */
+function compareSections(layoutSections: string[], pricedSections: string[]) {
+  const layout = new Set(layoutSections);
+  const priced = new Set(pricedSections);
+
+  return {
+    missingSections: layoutSections.filter((section) => !priced.has(section)),
+    unknownSections: pricedSections.filter((section) => !layout.has(section)),
+  };
 }
