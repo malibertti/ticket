@@ -1,5 +1,4 @@
 import * as schema from '@org/catalog-schema/schema';
-import { DEFAULT_SALES_CURRENCY } from '@org/catalog-schema/schema';
 import { VenueLayout } from '@org/catalog-schema/types';
 import { JobProgress } from 'bullmq/dist/esm/types';
 import { sql } from 'drizzle-orm';
@@ -229,7 +228,6 @@ export async function seedDb(db: Database, onProgress: ProgressFn) {
               eventId: event.id,
               section: section.code,
               priceCents,
-              currency: DEFAULT_SALES_CURRENCY,
             };
           }),
         )

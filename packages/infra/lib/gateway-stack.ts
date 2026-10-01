@@ -111,6 +111,19 @@ export class GatewayStack extends Stack {
             },
           },
         },
+        {
+          name: 'BlockInternal',
+          priority: 0,
+          action: { block: {} },
+          visibilityConfig: visibility('BlockInternal'),
+          statement: {
+            regexMatchStatement: {
+              regexString: '^/internal(/|$)',
+              fieldToMatch: { uriPath: {} },
+              textTransformations: [{ priority: 0, type: 'NONE' }],
+            },
+          },
+        },
       ],
     });
 

@@ -9,6 +9,7 @@ import { QueuesModule } from './queues/queues.module';
 import { SalesModule } from './sales/sales.module';
 import { SearchModule } from './search/search.module';
 import { VenuesModule } from './venues/venues.module';
+import { InventoryModule } from './inventory/inventory.module';
 
 @Module({
   imports: [
@@ -22,6 +23,7 @@ import { VenuesModule } from './venues/venues.module';
     SearchModule,
     QueuesModule,
     SalesModule,
+    InventoryModule,
   ],
   controllers: [],
 })

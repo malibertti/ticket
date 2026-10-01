@@ -9,10 +9,9 @@ import {
 } from 'drizzle-orm/pg-core';
 import { createInsertSchema } from 'drizzle-zod';
 import z from 'zod';
+import { DEFAULT_SALES_CURRENCY } from '../types/currency.js';
 import { events } from './events.js';
 import { catalog } from './schema.js';
-
-export const DEFAULT_SALES_CURRENCY = 'USD';
 
 export const eventPrices = catalog.table(
   'event_prices',
@@ -22,7 +21,9 @@ export const eventPrices = catalog.table(
       .references(() => events.id, { onDelete: 'cascade' }),
     section: text('section').notNull(),
     priceCents: integer('price_cents').notNull(),
-    currency: text('currency').notNull().default(DEFAULT_SALES_CURRENCY),
+    currency: text('currency', { enum: [DEFAULT_SALES_CURRENCY] })
+      .notNull()
+      .default(DEFAULT_SALES_CURRENCY),
     updatedAt: timestamp('updated_at', { withTimezone: true })
       .notNull()
       .defaultNow()

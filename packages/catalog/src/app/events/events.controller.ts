@@ -5,6 +5,7 @@ import {
   Param,
   ParseUUIDPipe,
   Post,
+  Put,
   Query,
 } from '@nestjs/common';
 import {
@@ -40,7 +41,7 @@ export class EventsController {
     return this.events.createEvent(body);
   }
 
-  @Post(':eventId/prices')
+  @Put(':eventId/prices')
   @Roles(['admins'])
   createEventPrices(
     @Param('eventId', ParseUUIDPipe) eventId: string,

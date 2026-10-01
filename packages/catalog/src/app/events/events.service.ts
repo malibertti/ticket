@@ -12,9 +12,15 @@ import {
   events,
   venues,
 } from '@org/catalog-schema/schema';
-import { Page, PageQuery, sectionCodes } from '@org/catalog-schema/types';
+import {
+  compareSections,
+  Page,
+  PageQuery,
+  sectionCodes,
+} from '@org/catalog-schema/types';
 import { desc, eq, sql } from 'drizzle-orm';
 import { type Database, DB_CONNECTION } from '../db/constants';
+import { InventoryService } from '../inventory/inventory.service';
 import { SearchService } from '../search/search.service';
 import { toEventDoc } from '../search/utils';
 
@@ -25,6 +31,7 @@ export class EventsService {
   constructor(
     @Inject(DB_CONNECTION) private readonly db: Database,
     private readonly search: SearchService,
+    private readonly inventory: InventoryService,
   ) {}
 
   async getEvents({ page, limit }: PageQuery): Promise<Page<any>> {
@@ -108,45 +115,34 @@ export class EventsService {
     return row;
   }
 
-  upsertPrices(eventId: string, prices: CreateEventPricesInput) {
-    return this.db.transaction(async (tx) => {
+  async upsertPrices(eventId: string, prices: CreateEventPricesInput) {
+    const { status, rows } = await this.db.transaction(async (tx) => {
       const [event] = await tx
-        .select({ venueId: events.venueId })
+        .select({
+          status: events.status,
+          layout: venues.layout,
+        })
         .from(events)
+        .innerJoin(venues, eq(venues.id, events.venueId))
         .where(eq(events.id, eventId))
-        .for('share');
+        .for('no key update', { of: events });
 
       if (!event) {
-        throw new NotFoundException('Event not found');
+        throw new NotFoundException({ error: 'EVENT_NOT_FOUND' });
       }
 
-      const [venue] = await tx
-        .select({ layout: venues.layout })
-        .from(venues)
-        .where(eq(venues.id, event.venueId))
-        .for('share');
+      const sections = prices.map((p) => p.section);
 
-      if (!venue?.layout) {
-        throw new NotFoundException('Venue or Layout not found');
+      if (new Set(sections).size !== sections.length) {
+        throw new UnprocessableEntityException({ error: 'DUPLICATE_SECTIONS' });
       }
 
-      // Match layout
-      const layoutSections = sectionCodes(venue.layout);
-      const pricedSections = prices.map((price) => price.section);
-      const priced = new Set(pricedSections);
-
-      const missingSections = layoutSections.filter(
-        (section) => !priced.has(section),
-      );
-      const unknownSections = pricedSections.filter(
-        (section) => !new Set(layoutSections).has(section),
+      const { unknownSections, missingSections } = compareSections(
+        sectionCodes(event.layout),
+        sections,
       );
 
-      if (
-        missingSections.length ||
-        unknownSections.length ||
-        priced.size !== pricedSections.length
-      ) {
+      if (unknownSections.length || missingSections.length) {
         throw new UnprocessableEntityException({
           error: 'PRICING_DOES_NOT_MATCH_LAYOUT',
           missingSections,
@@ -154,17 +150,42 @@ export class EventsService {
         });
       }
 
-      return tx
+      // // rows for sections no longer in the layout would block open-sales forever
+      // await tx
+      //   .delete(eventPrices)
+      //   .where(
+      //     and(
+      //       eq(eventPrices.eventId, eventId),
+      //       notInArray(eventPrices.section, sections),
+      //     ),
+      //   );
+
+      const rows = await tx
         .insert(eventPrices)
         .values(prices.map((price) => ({ ...price, eventId })))
         .onConflictDoUpdate({
           target: [eventPrices.eventId, eventPrices.section],
           set: {
             priceCents: sql`excluded.price_cents`,
-            updatedAt: new Date(),
+            updatedAt: sql`now()`,
           },
         })
         .returning();
+
+      return {
+        status: event.status,
+        rows,
+      };
     });
+
+    return {
+      eventId,
+      status,
+      prices: rows,
+      inventorySynced:
+        status === 'on_sale'
+          ? await this.inventory.syncSellableSeats(eventId)
+          : null,
+    };
   }
 }
