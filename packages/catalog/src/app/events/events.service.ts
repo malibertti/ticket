@@ -1,11 +1,18 @@
-import { Inject, Injectable, Logger, NotFoundException } from '@nestjs/common';
+import {
+  Inject,
+  Injectable,
+  Logger,
+  NotFoundException,
+  UnprocessableEntityException,
+} from '@nestjs/common';
 import {
   CreateEventInput,
+  CreateEventPricesInput,
   eventPrices,
   events,
   venues,
 } from '@org/catalog-schema/schema';
-import { Page, PageQuery } from '@org/catalog-schema/types';
+import { Page, PageQuery, sectionCodes } from '@org/catalog-schema/types';
 import { desc, eq, sql } from 'drizzle-orm';
 import { type Database, DB_CONNECTION } from '../db/constants';
 import { SearchService } from '../search/search.service';
@@ -99,5 +106,65 @@ export class EventsService {
     }
 
     return row;
+  }
+
+  upsertPrices(eventId: string, prices: CreateEventPricesInput) {
+    return this.db.transaction(async (tx) => {
+      const [event] = await tx
+        .select({ venueId: events.venueId })
+        .from(events)
+        .where(eq(events.id, eventId))
+        .for('share');
+
+      if (!event) {
+        throw new NotFoundException('Event not found');
+      }
+
+      const [venue] = await tx
+        .select({ layout: venues.layout })
+        .from(venues)
+        .where(eq(venues.id, event.venueId))
+        .for('share');
+
+      if (!venue?.layout) {
+        throw new NotFoundException('Venue or Layout not found');
+      }
+
+      // Match layout
+      const layoutSections = sectionCodes(venue.layout);
+      const pricedSections = prices.map((price) => price.section);
+      const priced = new Set(pricedSections);
+
+      const missingSections = layoutSections.filter(
+        (section) => !priced.has(section),
+      );
+      const unknownSections = pricedSections.filter(
+        (section) => !new Set(layoutSections).has(section),
+      );
+
+      if (
+        missingSections.length ||
+        unknownSections.length ||
+        priced.size !== pricedSections.length
+      ) {
+        throw new UnprocessableEntityException({
+          error: 'PRICING_DOES_NOT_MATCH_LAYOUT',
+          missingSections,
+          unknownSections,
+        });
+      }
+
+      return tx
+        .insert(eventPrices)
+        .values(prices.map((price) => ({ ...price, eventId })))
+        .onConflictDoUpdate({
+          target: [eventPrices.eventId, eventPrices.section],
+          set: {
+            priceCents: sql`excluded.price_cents`,
+            updatedAt: new Date(),
+          },
+        })
+        .returning();
+    });
   }
 }

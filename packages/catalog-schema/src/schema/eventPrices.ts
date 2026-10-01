@@ -40,10 +40,11 @@ export const eventPrices = catalog.table(
   ],
 );
 
-export const createEventPrices = createInsertSchema(eventPrices).omit({
+const createEventPrice = createInsertSchema(eventPrices).omit({
   eventId: true,
   currency: true,
   updatedAt: true,
 });
 
-export type EventPricesInput = z.infer<typeof createEventPrices>;
+export const createEventPrices = z.array(createEventPrice).min(1);
+export type CreateEventPricesInput = z.infer<typeof createEventPrices>;

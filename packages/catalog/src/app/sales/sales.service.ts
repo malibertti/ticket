@@ -41,14 +41,14 @@ export class SalesService {
         });
       }
 
-      const priced = await tx
+      const prices = await tx
         .select({ section: eventPrices.section })
         .from(eventPrices)
         .where(eq(eventPrices.eventId, eventId));
 
       const { missingSections, unknownSections } = compareSections(
         sectionCodes(event.layout),
-        priced.map((p) => p.section),
+        prices.map((p) => p.section),
       );
 
       if (missingSections.length || unknownSections.length) {
