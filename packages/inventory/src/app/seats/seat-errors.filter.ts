@@ -1,8 +1,7 @@
 import { ArgumentsHost, Catch, ExceptionFilter } from '@nestjs/common';
 import { Response } from 'express';
-import { ConcurrencyError } from '../../event-store/event-store.port';
-import { SeatCommandRejected } from '../application/seat-command-rejected.error';
-import { HoldExpiredError } from '../domain/seat.errors';
+import { ConcurrencyError } from '../event-store/event-store.service';
+import { HoldExpiredError, SeatCommandRejected } from './seat.errors';
 
 @Catch(SeatCommandRejected, ConcurrencyError)
 export class SeatErrorsFilter implements ExceptionFilter {

@@ -1,4 +1,3 @@
-import { SeatCommand } from './seat.commands';
 import {
   HoldExpiredError,
   NotHeld,
@@ -6,8 +5,7 @@ import {
   SeatAlreadyHeld,
   WrongHoldId,
 } from './seat.errors';
-import { SeatEvent } from './seat.events';
-import { SeatState } from './seat.state';
+import { SeatCommand, SeatEvent, SeatState } from './seat.types';
 
 export const HOLD_DURATION_MS = 10 * 60_000;
 

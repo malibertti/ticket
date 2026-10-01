@@ -46,4 +46,4 @@ export const createEventPrices = createInsertSchema(eventPrices).omit({
   updatedAt: true,
 });
 
-export type EventSectionPricesInput = z.infer<typeof createEventPrices>;
+export type EventPricesInput = z.infer<typeof createEventPrices>;

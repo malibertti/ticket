@@ -1,5 +1,3 @@
-import { SeatCommand } from './seat.commands';
-import { decide, evolve, HOLD_DURATION_MS } from './seat.decider';
 import {
   HoldExpiredError,
   NotHeld,
@@ -7,8 +5,8 @@ import {
   SeatAlreadyHeld,
   WrongHoldId,
 } from './seat.errors';
-import { SeatEvent } from './seat.events';
-import { initialState, SeatState } from './seat.state';
+import { decide, evolve, HOLD_DURATION_MS } from './seat.rules';
+import { initialState, SeatCommand, SeatEvent, SeatState } from './seat.types';
 
 // ---------- helpers ----------
 

@@ -2,12 +2,12 @@
 
 import {
   CreateTableCommand,
+  CreateTableCommandInput,
   DescribeTableCommand,
   DynamoDBClient,
   ResourceNotFoundException,
   waitUntilTableExists,
 } from '@aws-sdk/client-dynamodb';
-import { eventsTableDefinition } from '../src/app/event-store/events-table.definition';
 
 async function main() {
   const endpoint = process.env.DYNAMODB_LOCAL_ENDPOINT;
@@ -47,3 +47,24 @@ main().catch((err) => {
   console.error(err);
   process.exit(1);
 });
+
+export function eventsTableDefinition(
+  tableName: string,
+): CreateTableCommandInput {
+  return {
+    TableName: tableName,
+    BillingMode: 'PAY_PER_REQUEST',
+    AttributeDefinitions: [
+      { AttributeName: 'streamId', AttributeType: 'S' },
+      { AttributeName: 'version', AttributeType: 'N' },
+    ],
+    KeySchema: [
+      { AttributeName: 'streamId', KeyType: 'HASH' },
+      { AttributeName: 'version', KeyType: 'RANGE' },
+    ],
+    StreamSpecification: {
+      StreamEnabled: true,
+      StreamViewType: 'NEW_IMAGE',
+    },
+  };
+}

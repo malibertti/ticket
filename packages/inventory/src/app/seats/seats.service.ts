@@ -1,18 +1,11 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { Clock } from '../../common/clock';
 import {
   ConcurrencyError,
-  EventStore,
-} from '../../event-store/event-store.port';
-import { SeatCommand } from '../domain/seat.commands';
-import { decide, evolve } from '../domain/seat.decider';
-import { SeatError } from '../domain/seat.errors';
-import { SeatEvent } from '../domain/seat.events';
-import { initialState, SeatState } from '../domain/seat.state';
-import {
-  SeatCommandRejected,
-  SeatRejection,
-} from './seat-command-rejected.error';
+  EventStoreService,
+} from '../event-store/event-store.service';
+import { SeatCommandRejected, SeatError, SeatRejection } from './seat.errors';
+import { decide, evolve } from './seat.rules';
+import { initialState, SeatCommand, SeatEvent, SeatState } from './seat.types';
 
 export const MAX_SEATS_PER_COMMAND = 10;
 
@@ -24,14 +17,11 @@ interface LoadedSeat {
 }
 
 @Injectable()
-export class SeatCommandsService {
-  private readonly logger = new Logger(SeatCommandsService.name);
+export class SeatsService {
+  private readonly logger = new Logger(SeatsService.name);
   private readonly maxAttempts = 3;
 
-  constructor(
-    private readonly store: EventStore,
-    private readonly clock: Clock,
-  ) {}
+  constructor(private readonly eventStore: EventStoreService) {}
 
   async holdSeats(
     eventId: string,
@@ -79,14 +69,13 @@ export class SeatCommandsService {
     this.assertSeatIds(seatIds);
 
     for (let attempt = 1; ; attempt++) {
-      const now = this.clock.now(); // fresh on every attempt: a retry may cross an expiry
       const seats = await Promise.all(
         seatIds.map((seatId) => this.load(eventId, seatId)),
       );
-      const decisions = this.decideAll(seats, cmd, now);
+      const decisions = this.decideAll(seats, cmd, new Date());
 
       try {
-        await this.store.appendAtomically(
+        await this.eventStore.appendAtomically(
           decisions.map((d) => ({
             streamId: d.streamId,
             expectedVersion: d.version,
@@ -105,7 +94,7 @@ export class SeatCommandsService {
   private async load(eventId: string, seatId: string): Promise<LoadedSeat> {
     this.logger.debug({ eventId, seatId }, 'load');
     const streamId = seatStreamId(eventId, seatId);
-    const stored = await this.store.readStream<SeatEvent>(streamId);
+    const stored = await this.eventStore.readStream<SeatEvent>(streamId);
 
     return {
       seatId,

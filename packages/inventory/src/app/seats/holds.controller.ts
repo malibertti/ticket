@@ -8,7 +8,6 @@ import {
   UseFilters,
 } from '@nestjs/common';
 import { ZodPipe } from '@org/shared/pipes';
-import { SeatCommandsService } from '../application/seat-commands.service';
 import {
   type BookSeatsDto,
   bookSeatsSchema,
@@ -18,11 +17,12 @@ import {
   releaseSeatsSchema,
 } from './holds.dto';
 import { SeatErrorsFilter } from './seat-errors.filter';
+import { SeatsService } from './seats.service';
 
 @Controller('events/:eventId/holds')
 @UseFilters(SeatErrorsFilter)
 export class HoldsController {
-  constructor(private readonly seats: SeatCommandsService) {}
+  constructor(private readonly seats: SeatsService) {}
 
   @Post()
   hold(

@@ -1,18 +1,11 @@
 import { Module } from '@nestjs/common';
-import { Clock, SystemClock } from '../common/clock';
 import { EventStoreModule } from '../event-store/event-store.module';
-import { SeatCommandsService } from './application/seat-commands.service';
-import { HoldsController } from './http/holds.controller';
+import { HoldsController } from './holds.controller';
+import { SeatsService } from './seats.service';
 
 @Module({
   imports: [EventStoreModule],
   controllers: [HoldsController],
-  providers: [
-    {
-      provide: Clock,
-      useClass: SystemClock,
-    },
-    SeatCommandsService,
-  ],
+  providers: [SeatsService],
 })
 export class SeatsModule {}

@@ -1,16 +1,10 @@
 import { Module } from '@nestjs/common';
 import { DynamoDbModule } from '../dynamo-db/dynamo-db.module';
-import { DynamoDbEventStore } from './dynamodb-event-store';
-import { EventStore } from './event-store.port';
+import { EventStoreService } from './event-store.service';
 
 @Module({
   imports: [DynamoDbModule],
-  providers: [
-    {
-      provide: EventStore,
-      useClass: DynamoDbEventStore,
-    },
-  ],
-  exports: [EventStore],
+  providers: [EventStoreService],
+  exports: [EventStoreService],
 })
 export class EventStoreModule {}

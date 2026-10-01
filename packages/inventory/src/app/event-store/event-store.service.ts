@@ -6,28 +6,51 @@ import {
 import { Injectable, Logger } from '@nestjs/common';
 import { randomUUID } from 'node:crypto';
 import { EnvService } from '../env/env.service';
-import {
-  AppendRequest,
-  ConcurrencyError,
-  DomainEvent,
-  EventStore,
-  StoredEvent,
-} from './event-store.port';
+
+interface DomainEvent {
+  type: string;
+}
+
+interface StoredEvent<E extends DomainEvent = DomainEvent> {
+  streamId: string;
+  version: number;
+  eventId: string;
+  type: E['type'];
+  data: E;
+  occurredAt: string;
+  metadata: Record<string, string>;
+}
+
+interface AppendRequest<E extends DomainEvent = DomainEvent> {
+  streamId: string;
+  expectedVersion: number; // 0 = stream must not exist yet
+  events: E[];
+  metadata?: Record<string, string>;
+}
+
+export class ConcurrencyError extends Error {
+  constructor(readonly streamIds: string[]) {
+    super(`Concurrent modification on: ${streamIds.join(', ')}`);
+    this.name = 'ConcurrencyError';
+  }
+}
 
 @Injectable()
-export class DynamoDbEventStore implements EventStore {
-  private readonly logger = new Logger(DynamoDbEventStore.name);
+export class EventStoreService {
+  private readonly logger = new Logger(EventStoreService.name);
   private readonly maxTransactItems = 100;
   private readonly conflictCodes = new Set([
     'ConditionalCheckFailed',
     'TransactionConflict',
   ]);
-  private readonly tableName = this.env.get('INVENTORY_EVENTS_TABLE');
+  private readonly tableName: string;
 
   constructor(
     private readonly client: DynamoDBDocumentClient,
-    private readonly env: EnvService,
-  ) {}
+    readonly env: EnvService,
+  ) {
+    this.tableName = env.get('INVENTORY_EVENTS_TABLE');
+  }
 
   async readStream<E extends DomainEvent>(
     streamId: string,

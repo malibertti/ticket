@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { MAX_SEATS_PER_COMMAND } from '../application/seat-commands.service';
+import { MAX_SEATS_PER_COMMAND } from './seats.service';
 
 // one or more non-empty parts separated by ':'
 // e.g. "x", "x:x", "1:x:x", "a:b:c:d"

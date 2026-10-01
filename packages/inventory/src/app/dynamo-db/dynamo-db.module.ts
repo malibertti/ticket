@@ -10,21 +10,16 @@ import { EnvService } from '../env/env.service';
       inject: [EnvService],
       useFactory: (env: EnvService) => {
         const endpoint = env.get('DYNAMODB_LOCAL_ENDPOINT');
-        const accessKeyId = env.get('AWS_ACCESS_KEY_ID');
-        const secretAccessKey = env.get('AWS_SECRET_ACCESS_KEY');
 
         return new DynamoDBClient({
           region: env.get('AWS_REGION'),
-          // Only for local dev
-          ...(endpoint &&
-            accessKeyId &&
-            secretAccessKey && {
-              endpoint,
-              credentials: {
-                accessKeyId,
-                secretAccessKey,
-              },
-            }),
+          ...(endpoint && {
+            endpoint,
+            credentials: {
+              accessKeyId: env.get('AWS_ACCESS_KEY_ID') ?? 'local',
+              secretAccessKey: env.get('AWS_SECRET_ACCESS_KEY') ?? 'local',
+            },
+          }),
         });
       },
     },
