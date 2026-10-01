@@ -6,7 +6,7 @@ import {
   Query,
   Res,
 } from '@nestjs/common';
-import { type PageQuery, pageQuery } from '@org/contracts';
+import { type PageQuery, pageQuery } from '@org/catalog-schema/types';
 import { Public } from '@org/shared/auth';
 import { ZodPipe } from '@org/shared/pipes';
 import { type Response } from 'express';

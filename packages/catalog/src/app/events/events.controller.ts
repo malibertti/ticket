@@ -7,10 +7,13 @@ import {
   Post,
   Query,
 } from '@nestjs/common';
-import { type PageQuery, pageQuery } from '@org/contracts';
+import {
+  createEventInput,
+  type CreateEventInput,
+} from '@org/catalog-schema/schema';
+import { type PageQuery, pageQuery } from '@org/catalog-schema/types';
 import { Public } from '@org/shared/auth';
 import { ZodPipe } from '@org/shared/pipes';
-import { createEventInput, type CreateEventInput } from '../db/schema';
 import { EventsService } from './events.service';
 
 @Controller('events')

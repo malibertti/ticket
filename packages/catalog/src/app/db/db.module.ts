@@ -1,5 +1,6 @@
 import { Inject, Module, OnModuleDestroy } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { relations } from '@org/catalog-schema/schema';
 import { drizzle } from 'drizzle-orm/node-postgres';
 import { Pool } from 'pg';
 import { EnvService } from '../env/env.service.js';
@@ -7,7 +8,6 @@ import { QueuesModule } from '../queues/queues.module.js';
 import { DB_CONNECTION, DB_POOL } from './constants.js';
 import { DbController } from './db.controller.js';
 import { DbService } from './db.service.js';
-import { relations } from './relations.js';
 import { SeedProcessor } from './seed.processor.js';
 
 @Module({

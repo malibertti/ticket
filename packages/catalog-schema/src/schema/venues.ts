@@ -1,4 +1,3 @@
-import { VenueLayout } from '@org/contracts';
 import { sql } from 'drizzle-orm';
 import {
   check,
@@ -11,7 +10,8 @@ import {
 } from 'drizzle-orm/pg-core';
 import { createInsertSchema } from 'drizzle-zod';
 import z from 'zod';
-import { catalog } from './schema';
+import { VenueLayout } from '../types/venues.js';
+import { catalog } from './schema.js';
 
 export const venues = catalog.table(
   'venues',

@@ -1,4 +1,4 @@
-import { events, venues } from '../db/schema';
+import { events, venues } from '@org/catalog-schema/schema';
 
 type Event = Pick<
   typeof events.$inferSelect,

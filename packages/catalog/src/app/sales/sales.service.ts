@@ -2,15 +2,16 @@ import {
   ConflictException,
   Inject,
   Injectable,
+  Logger,
   NotFoundException,
 } from '@nestjs/common';
+import { events, eventSectionPrices } from '@org/catalog-schema/schema';
 import { eq, sql } from 'drizzle-orm';
 import { type Database, DB_CONNECTION } from '../db/constants';
-import { events, eventSectionPrices } from '../db/schema';
 
 @Injectable()
 export class SalesService {
-  // private readonly logger = new Logger(SalesService.name);
+  private readonly logger = new Logger(SalesService.name);
 
   constructor(
     @Inject(DB_CONNECTION) private readonly db: Database,
@@ -72,6 +73,7 @@ export class SalesService {
 
   /** Best effort: the event stays on sale even if inventory is unreachable; the admin can resync. */
   async syncInventory(eventId: string): Promise<boolean> {
+    this.logger.log({ eventId }, 'syncInventory');
     return true;
   }
 

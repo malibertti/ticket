@@ -2,8 +2,8 @@ import { sql } from 'drizzle-orm';
 import { text, timestamp, uuid } from 'drizzle-orm/pg-core';
 import { createInsertSchema } from 'drizzle-zod';
 import z from 'zod';
-import { catalog } from './schema';
-import { venues } from './venues';
+import { catalog } from './schema.js';
+import { venues } from './venues.js';
 
 export const events = catalog.table('events', {
   id: uuid('id')

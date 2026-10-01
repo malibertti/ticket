@@ -1,9 +1,9 @@
-import { VenueLayout } from '@org/contracts';
+import * as schema from '@org/catalog-schema/schema';
+import { DEFAULT_SALES_CURRENCY } from '@org/catalog-schema/schema';
+import { VenueLayout } from '@org/catalog-schema/types';
 import { JobProgress } from 'bullmq/dist/esm/types';
 import { sql } from 'drizzle-orm';
 import { Database } from './constants';
-import * as schema from './schema';
-import { DEFAULT_SALES_CURRENCY } from './schema';
 
 type ProgressFn = (processed: JobProgress) => void;
 

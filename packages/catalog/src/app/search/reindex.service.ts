@@ -1,9 +1,9 @@
 import { Inject, Injectable, Logger } from '@nestjs/common';
 import { Client } from '@opensearch-project/opensearch';
+import { events, venues } from '@org/catalog-schema/schema';
 import { JobProgress } from 'bullmq';
 import { asc, count, eq, gt } from 'drizzle-orm';
 import { type Database, DB_CONNECTION } from '../db/constants';
-import { events, venues } from '../db/schema';
 import { EnvService } from '../env/env.service';
 import {
   EVENTS_ALIAS,

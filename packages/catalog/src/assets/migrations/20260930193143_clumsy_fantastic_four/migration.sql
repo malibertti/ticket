@@ -1,1 +1,0 @@
-ALTER TABLE "catalog"."seat_map_entries" ALTER COLUMN "seat_number" SET DATA TYPE text USING "seat_number"::text;

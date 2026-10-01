@@ -9,8 +9,8 @@ import {
 } from 'drizzle-orm/pg-core';
 import { createInsertSchema } from 'drizzle-zod';
 import z from 'zod';
-import { events } from './events';
-import { catalog } from './schema';
+import { events } from './events.js';
+import { catalog } from './schema.js';
 
 export const DEFAULT_SALES_CURRENCY = 'USD';
 

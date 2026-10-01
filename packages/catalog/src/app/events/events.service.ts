@@ -1,13 +1,13 @@
 import { Inject, Injectable, Logger, NotFoundException } from '@nestjs/common';
-import { Page, PageQuery } from '@org/contracts';
-import { desc, eq, sql } from 'drizzle-orm';
-import { type Database, DB_CONNECTION } from '../db/constants';
 import {
   CreateEventInput,
   events,
   eventSectionPrices,
   venues,
-} from '../db/schema';
+} from '@org/catalog-schema/schema';
+import { Page, PageQuery } from '@org/catalog-schema/types';
+import { desc, eq, sql } from 'drizzle-orm';
+import { type Database, DB_CONNECTION } from '../db/constants';
 import { SearchService } from '../search/search.service';
 import { toEventDoc } from '../search/utils';
 

@@ -1,8 +1,8 @@
 import { Inject, Injectable, NotFoundException } from '@nestjs/common';
-import { type Page, type PageQuery } from '@org/contracts';
+import { venues } from '@org/catalog-schema/schema';
+import { Page, PageQuery } from '@org/catalog-schema/types';
 import { desc, eq, sql } from 'drizzle-orm';
 import { type Database, DB_CONNECTION } from '../db/constants';
-import { venues } from '../db/schema';
 
 @Injectable()
 export class VenuesService {

@@ -30,7 +30,7 @@ export default [
               onlyDependOnLibsWithTags: [],
             },
             {
-              sourceTag: 'name:contracts',
+              sourceTag: 'name:catalog-schema',
               onlyDependOnLibsWithTags: [],
             },
             {
@@ -39,7 +39,7 @@ export default [
             },
             {
               sourceTag: 'name:admin',
-              onlyDependOnLibsWithTags: ['name:contracts'],
+              onlyDependOnLibsWithTags: ['name:catalog-schema'],
             },
             {
               sourceTag: 'name:web',
@@ -47,11 +47,11 @@ export default [
             },
             {
               sourceTag: 'name:catalog',
-              onlyDependOnLibsWithTags: ['name:shared', 'name:contracts'],
+              onlyDependOnLibsWithTags: ['name:shared', 'name:catalog-schema'],
             },
             {
               sourceTag: 'name:inventory',
-              onlyDependOnLibsWithTags: ['name:shared', 'name:contracts'],
+              onlyDependOnLibsWithTags: ['name:shared'],
             },
           ],
         },

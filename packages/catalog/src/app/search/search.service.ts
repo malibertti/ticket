@@ -1,6 +1,6 @@
 import { Inject, Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { Client } from '@opensearch-project/opensearch';
-import { SearchEventsQuery } from '@org/contracts';
+import { SearchEventsQuery } from '@org/catalog-schema/types';
 import { EnvService } from '../env/env.service';
 import {
   EVENTS_ALIAS,

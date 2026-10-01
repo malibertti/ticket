@@ -9,7 +9,16 @@
     "emitDecoratorMetadata": true,
     "target": "es2021"
   },
-  "include": ["src/**/*.ts", "../shared/src/lib/pipes/zod.pipe.ts"],
+  "include": [
+    "src/**/*.ts",
+    "../shared/src/lib/pipes/zod.pipe.ts",
+    "../catalog-schema/src/schema/events.ts",
+    "../catalog-schema/src/schema/eventSectionPrices.ts",
+    "../catalog-schema/src/schema/index.ts",
+    "../catalog-schema/src/schema/schema.ts",
+    "../catalog-schema/src/schema/venues.ts",
+    "../catalog-schema/src/schema/relations.ts"
+  ],
   "exclude": [
     "out-tsc",
     "dist",
@@ -26,7 +35,7 @@
       "path": "../shared/tsconfig.lib.json"
     },
     {
-      "path": "../contracts/tsconfig.lib.json"
+      "path": "../catalog-schema/tsconfig.lib.json"
     }
   ]
 }

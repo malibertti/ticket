@@ -1,4 +1,5 @@
 import { faker } from '@faker-js/faker';
+import type { EventFormValues } from './FormEvents';
 
 export function randomVenue() {
   return {
@@ -6,7 +7,7 @@ export function randomVenue() {
     city: faker.location.city(),
   };
 }
-export function randomEvent(venueId: string) {
+export function randomEvent(venueId: string): EventFormValues {
   const now = new Date();
 
   const tomorrow = new Date(now);

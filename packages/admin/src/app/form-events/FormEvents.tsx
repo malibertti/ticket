@@ -1,3 +1,4 @@
+import type { CreateEventInput } from '@org/catalog-schema/schema';
 import { useState } from 'react';
 import { useForm, type SubmitHandler } from 'react-hook-form';
 import { useAuth } from 'react-oidc-context';
@@ -6,28 +7,26 @@ import { randomEvent } from './utils';
 
 const { VITE_API_URL } = import.meta.env;
 
-type CreateEventInput = {
-  venueId: string;
-  title: string;
+export type EventFormValues = Omit<
+  CreateEventInput,
+  'startsAt' | 'onSaleAt'
+> & {
   startsAt: string;
   onSaleAt: string;
-  status: string;
 };
 
 export function FormEvents() {
   const auth = useAuth();
-  const [event, setEvent] = useState<CreateEventInput>();
+  const [event, setEvent] = useState<EventFormValues>();
   const {
     register,
     handleSubmit,
     setError,
     reset,
     formState: { errors, isSubmitting },
-  } = useForm<CreateEventInput>({
-    defaultValues: randomEvent('b32bd589-1634-4ec2-afd7-849a61c1e7b6'),
-  });
+  } = useForm<EventFormValues>({});
 
-  const onSubmit: SubmitHandler<CreateEventInput> = async (data) => {
+  const onSubmit: SubmitHandler<EventFormValues> = async (data) => {
     setEvent(undefined);
 
     const response = await fetch(`${VITE_API_URL}/events`, {

@@ -1,5 +1,8 @@
 import { Controller, Get, Query } from '@nestjs/common';
-import { type SearchEventsQuery, searchEventsQuery } from '@org/contracts';
+import {
+  searchEventsQuery,
+  type SearchEventsQuery,
+} from '@org/catalog-schema/types';
 import { Public } from '@org/shared/auth';
 import { ZodPipe } from '@org/shared/pipes';
 import { SearchService } from './search.service';
