@@ -7,7 +7,7 @@ export function randomVenue() {
     city: faker.location.city(),
   };
 }
-export function randomEvent(venueId: string): EventFormValues {
+export function randomEvent(venueId = ''): EventFormValues {
   const now = new Date();
 
   const tomorrow = new Date(now);
