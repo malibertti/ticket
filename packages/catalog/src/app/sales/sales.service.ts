@@ -5,7 +5,7 @@ import {
   Logger,
   NotFoundException,
 } from '@nestjs/common';
-import { events, eventSectionPrices } from '@org/catalog-schema/schema';
+import { eventPrices, events } from '@org/catalog-schema/schema';
 import { eq, sql } from 'drizzle-orm';
 import { type Database, DB_CONNECTION } from '../db/constants';
 
@@ -37,8 +37,8 @@ export class SalesService {
 
       const [{ prices }] = await tx
         .select({ prices: sql<number>`count(*)::int` })
-        .from(eventSectionPrices)
-        .where(eq(eventSectionPrices.eventId, eventId));
+        .from(eventPrices)
+        .where(eq(eventPrices.eventId, eventId));
 
       if (prices === 0) {
         throw new ConflictException({ error: 'EVENT_HAS_NO_PRICING' });

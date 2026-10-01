@@ -1,0 +1,1 @@
+ALTER TABLE "catalog"."event_section_prices" RENAME TO "event_prices";

@@ -8,7 +8,7 @@ export class DbService {
 
   truncate() {
     return this.db.execute(
-      sql`TRUNCATE TABLE "catalog"."event_section_prices", "catalog"."events", "catalog"."venues" CASCADE`,
+      sql`TRUNCATE TABLE "catalog"."event_prices", "catalog"."events", "catalog"."venues" CASCADE`,
     );
   }
 }

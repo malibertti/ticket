@@ -161,7 +161,7 @@ export async function seedDb(db: Database, onProgress: ProgressFn) {
   return db.transaction(async (tx) => {
     // Truncate first
     await tx.execute(
-      sql`TRUNCATE TABLE "catalog"."event_section_prices", "catalog"."events", "catalog"."venues" CASCADE`,
+      sql`TRUNCATE TABLE "catalog"."event_prices", "catalog"."events", "catalog"."venues" CASCADE`,
     );
 
     onProgress('truncated');
@@ -215,8 +215,8 @@ export async function seedDb(db: Database, onProgress: ProgressFn) {
         throw new Error(`No venue for ${event.title}`);
       }
 
-      const insertedEventSectionPrices = await tx
-        .insert(schema.eventSectionPrices)
+      const insertedEventPrices = await tx
+        .insert(schema.eventPrices)
         .values(
           venue.layout.sections.map((section) => {
             const priceCents = prices.get(section.code);
@@ -235,13 +235,15 @@ export async function seedDb(db: Database, onProgress: ProgressFn) {
         )
         .returning();
 
-      eventSectionPricesCount += insertedEventSectionPrices.length;
+      eventSectionPricesCount += insertedEventPrices.length;
     }
+
+    onProgress('eventPrices inserted');
 
     onProgress({
       venues: insertedVenues.length,
       events: insertedEvents.length,
-      eventSectionPrices: eventSectionPricesCount,
+      eventPrices: eventSectionPricesCount,
       seconds: (Date.now() - started) / 1000,
     });
   });

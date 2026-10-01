@@ -1,8 +1,8 @@
 import { Inject, Injectable, Logger, NotFoundException } from '@nestjs/common';
 import {
   CreateEventInput,
+  eventPrices,
   events,
-  eventSectionPrices,
   venues,
 } from '@org/catalog-schema/schema';
 import { Page, PageQuery } from '@org/catalog-schema/types';
@@ -46,12 +46,12 @@ export class EventsService {
     const rows = await this.db
       .select({
         event: events,
-        section: eventSectionPrices.section,
-        priceCents: eventSectionPrices.priceCents,
-        currency: eventSectionPrices.currency,
+        section: eventPrices.section,
+        priceCents: eventPrices.priceCents,
+        currency: eventPrices.currency,
       })
       .from(events)
-      .leftJoin(eventSectionPrices, eq(eventSectionPrices.eventId, id))
+      .leftJoin(eventPrices, eq(eventPrices.eventId, id))
       .where(eq(events.id, id));
 
     const event = rows[0]?.event;

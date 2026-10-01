@@ -14,8 +14,8 @@ import { catalog } from './schema.js';
 
 export const DEFAULT_SALES_CURRENCY = 'USD';
 
-export const eventSectionPrices = catalog.table(
-  'event_section_prices',
+export const eventPrices = catalog.table(
+  'event_prices',
   {
     eventId: uuid('event_id')
       .notNull()
