@@ -16,13 +16,7 @@
       "path": "./packages/web"
     },
     {
-      "path": "./packages/catalog-e2e"
-    },
-    {
       "path": "./packages/catalog"
-    },
-    {
-      "path": "./packages/inventory-e2e"
     },
     {
       "path": "./packages/inventory"
