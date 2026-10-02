@@ -441,7 +441,7 @@ importers:
         specifier: workspace:*
         version: link:../shared
       bullmq:
-        specifier: ^6.3.8
+        specifier: ^6.3.11
         version: 6.3.11(pg@8.23.0)
       drizzle-orm:
         specifier: 1.0.0-rc.4

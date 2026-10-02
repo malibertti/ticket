@@ -11,6 +11,13 @@ module.exports = {
       devtoolModuleFilenameTemplate: '[absolute-resource-path]',
     }),
   },
+  module: {
+    parser: {
+      javascript: {
+        exprContextCritical: false,
+      },
+    },
+  },
   plugins: [
     new IgnorePlugin({ resourceRegExp: /^pg-native$/ }),
     new IgnorePlugin({ resourceRegExp: /^aws-sdk$/ }),

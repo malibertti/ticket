@@ -24,7 +24,7 @@ type GetKeys = NonNullable<
 
 /** Inventory's local copy of what catalog says is sellable: one item per seat or standing slot. */
 @Injectable()
-export class SellableSeatsService {
+export class DbSellableSeats {
   private readonly batchSize = 25; // BatchWriteItem limit
   private readonly parallelBatches = 4;
   private readonly maxAttempts = 5;

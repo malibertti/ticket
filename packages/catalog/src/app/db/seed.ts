@@ -26,18 +26,18 @@ const venues: Venue[] = [
           code: 'PLATEA-A',
           rows: [
             { label: '01', seats: 10 },
-            { label: '02', seats: 20 },
+            { label: '02', seats: 10 },
           ],
         },
         {
           kind: 'standing',
           code: 'CAMPO',
-          capacity: 500,
+          capacity: 10,
         },
         {
           kind: 'standing',
           code: 'CAMPO-VIP',
-          capacity: 100,
+          capacity: 10,
         },
       ],
     },

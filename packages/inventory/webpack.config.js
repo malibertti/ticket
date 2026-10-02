@@ -11,8 +11,18 @@ module.exports = {
       devtoolModuleFilenameTemplate: '[absolute-resource-path]',
     }),
   },
+  module: {
+    parser: {
+      javascript: {
+        exprContextCritical: false,
+      },
+    },
+  },
   plugins: [
+    new IgnorePlugin({ resourceRegExp: /^pg-native$/ }),
     new IgnorePlugin({ resourceRegExp: /^aws-sdk$/ }),
+    new IgnorePlugin({ resourceRegExp: /^ioredis$/ }),
+    new IgnorePlugin({ resourceRegExp: /^@valkey\/valkey-glide$/ }),
     new NxAppWebpackPlugin({
       target: 'node',
       compiler: 'tsc',

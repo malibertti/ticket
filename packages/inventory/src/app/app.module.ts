@@ -2,16 +2,16 @@ import { Module } from '@nestjs/common';
 import { HealthModule } from '@org/shared/health';
 import { LoggerModule } from '@org/shared/logger';
 import { EnvModule } from './env/env.module';
-import { SeatsModule } from './seats/seats.module';
-import { QueuesModule } from './queues/queues.module';
+import { HoldsModule } from './holds/holds.module';
+import { InternalModule } from './internal/internal.module';
 
 @Module({
   imports: [
-    EnvModule, //
+    EnvModule,
     LoggerModule.forRoot('inventory'),
     HealthModule,
-    SeatsModule,
-    QueuesModule,
+    HoldsModule,
+    InternalModule,
   ],
   controllers: [],
   providers: [],

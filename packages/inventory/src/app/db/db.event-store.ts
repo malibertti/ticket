@@ -28,16 +28,9 @@ interface AppendRequest<E extends DomainEvent = DomainEvent> {
   metadata?: Record<string, string>;
 }
 
-export class ConcurrencyError extends Error {
-  constructor(readonly streamIds: string[]) {
-    super(`Concurrent modification on: ${streamIds.join(', ')}`);
-    this.name = 'ConcurrencyError';
-  }
-}
-
 @Injectable()
-export class EventStoreService {
-  private readonly logger = new Logger(EventStoreService.name);
+export class DbEventStore {
+  private readonly logger = new Logger(DbEventStore.name);
   private readonly maxTransactItems = 100;
   private readonly conflictCodes = new Set([
     'ConditionalCheckFailed',
@@ -150,5 +143,12 @@ export class EventStoreService {
     return conflicted.length
       ? new ConcurrencyError([...new Set(conflicted)])
       : undefined;
+  }
+}
+
+export class ConcurrencyError extends Error {
+  constructor(readonly streamIds: string[]) {
+    super(`Concurrent modification on: ${streamIds.join(', ')}`);
+    this.name = 'ConcurrencyError';
   }
 }

@@ -4,9 +4,9 @@ import {
   SeatAlreadyBooked,
   SeatAlreadyHeld,
   WrongHoldId,
-} from './seat.errors';
-import { decide, evolve, HOLD_DURATION_MS } from './seat.rules';
-import { initialState, SeatCommand, SeatEvent, SeatState } from './seat.types';
+} from './errors';
+import { decide, evolve, HOLD_DURATION_MS } from './rules';
+import { initialState, SeatCommand, SeatEvent, SeatState } from './types';
 
 // ---------- helpers ----------
 

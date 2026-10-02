@@ -4,9 +4,6 @@
   "files": [],
   "references": [
     {
-      "path": "./packages/admin-e2e"
-    },
-    {
       "path": "./packages/admin"
     },
     {

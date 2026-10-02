@@ -1,6 +1,6 @@
 import { Injectable, Logger, OnApplicationShutdown } from '@nestjs/common';
+import { DbSellableSeats } from '../db/db.sellable-seats';
 import { CatalogService } from './catalog.service';
-import { SellableSeatsService } from './sellable-seats.service';
 
 @Injectable()
 export class SyncService implements OnApplicationShutdown {
@@ -10,7 +10,7 @@ export class SyncService implements OnApplicationShutdown {
 
   constructor(
     private readonly catalog: CatalogService,
-    private readonly sellableSeats: SellableSeatsService,
+    private readonly dbSellableSeats: DbSellableSeats,
   ) {}
 
   /**
@@ -51,7 +51,7 @@ export class SyncService implements OnApplicationShutdown {
     const startedAt = Date.now();
     const snapshot = await this.catalog.sellableSeats(eventId);
 
-    await this.sellableSeats.writeSnapshot(snapshot);
+    await this.dbSellableSeats.writeSnapshot(snapshot);
 
     this.logger.log(
       { eventId, seats: snapshot.seats.length, ms: Date.now() - startedAt },

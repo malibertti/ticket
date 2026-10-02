@@ -7,15 +7,18 @@ import { EnvService } from '../env/env.service';
 
 @Injectable()
 export class CatalogService {
+  // private readonly logger = new Logger(CatalogService.name);
   private readonly timeoutMs = 30_000;
 
   constructor(private readonly env: EnvService) {}
 
   /** Pulls the event's sellable seats from catalog and validates them against the shared contract. */
   async sellableSeats(eventId: string): Promise<SellableSeatsSnapshot> {
+    const baseUrl = this.env.get('CATALOG_BASE_URL');
+
     const url = new URL(
       `/internal/events/${encodeURIComponent(eventId)}/sellable-seats`,
-      this.env.get('CATALOG_BASE_URL'),
+      baseUrl,
     );
 
     const res = await fetch(url, {

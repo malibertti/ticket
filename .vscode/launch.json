@@ -17,7 +17,7 @@
       "skipFiles": ["<node_internals>/**"],
       "sourceMaps": true,
       "outFiles": [
-        "${workspaceFolder}/packages/catalog/dist/**/*.(m|c|)js",
+        "${workspaceFolder}/packages/catalog/dist/**/*.js",
         "!**/node_modules/**"
       ]
     },
@@ -37,7 +37,7 @@
       "skipFiles": ["<node_internals>/**"],
       "sourceMaps": true,
       "outFiles": [
-        "${workspaceFolder}/packages/inventory/dist/**/*.(m|c|)js",
+        "${workspaceFolder}/packages/inventory/dist/**/*.js",
         "!**/node_modules/**"
       ]
     }

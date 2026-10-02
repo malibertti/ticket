@@ -4,8 +4,8 @@ import {
   SeatAlreadyBooked,
   SeatAlreadyHeld,
   WrongHoldId,
-} from './seat.errors';
-import { SeatCommand, SeatEvent, SeatState } from './seat.types';
+} from './errors';
+import { SeatCommand, SeatEvent, SeatState } from './types';
 
 export const HOLD_DURATION_MS = 10 * 60_000;
 
@@ -142,7 +142,7 @@ export function decide(
   }
 }
 
-export function evolve(state: SeatState, event: SeatEvent): SeatState {
+export function evolve(acc: SeatState, event: SeatEvent): SeatState {
   switch (event.type) {
     case 'SeatHeld':
       return {

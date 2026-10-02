@@ -1,19 +1,21 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { SellableSeat } from '@org/catalog-schema/types';
-import {
-  ConcurrencyError,
-  EventStoreService,
-} from '../event-store/event-store.service';
-import { SellableSeatsService } from '../sellable-seats/sellable-seats.service';
+import { ConcurrencyError, DbEventStore } from '../db/db.event-store';
+import { DbSellableSeats } from '../db/db.sellable-seats';
 import {
   NotEnoughAvailable,
   SeatCommandRejected,
   SeatError,
   SeatRejection,
   UnknownSeat,
-} from './seat.errors';
-import { decide, evolve } from './seat.rules';
-import { initialState, SeatCommand, SeatEvent, SeatState } from './seat.types';
+} from './domain/errors';
+import { decide, evolve } from './domain/rules';
+import {
+  initialState,
+  SeatCommand,
+  SeatEvent,
+  SeatState,
+} from './domain/types';
 
 export const MAX_SEATS_PER_COMMAND = 10;
 
@@ -25,27 +27,30 @@ interface LoadedSeat {
 }
 
 @Injectable()
-export class SeatsService {
-  private readonly logger = new Logger(SeatsService.name);
+export class HoldsService {
+  private readonly logger = new Logger(HoldsService.name);
   private readonly maxAttempts = 3;
   private readonly maxStandingAttempts = 5;
 
   constructor(
-    private readonly eventStore: EventStoreService,
-    private readonly sellableSeats: SellableSeatsService,
+    private readonly dbEventStore: DbEventStore,
+    private readonly dbSellableSeats: DbSellableSeats,
   ) {}
 
   async holdSeats(eventId: string, holdId: string, seatIds: string[]) {
     this.assertSeatIds(seatIds);
 
     // only seats catalog put on sale can be held; their current price is captured in SeatHeld
-    const sellable = await this.sellableSeats.findSeats(eventId, seatIds);
+    const sellable = await this.dbSellableSeats.findSeats(eventId, seatIds);
     const unknownCode = new UnknownSeat().code;
     const unknown = seatIds.filter((seatId) => !sellable.has(seatId));
 
     if (unknown.length) {
       throw new SeatCommandRejected(
-        unknown.map((seatId) => ({ seatId, code: unknownCode })),
+        unknown.map((seatId) => ({
+          seatId,
+          code: unknownCode,
+        })),
       );
     }
 
@@ -63,7 +68,7 @@ export class SeatsService {
     quantity: number,
   ) {
     const slots = (
-      await this.sellableSeats.findSection(eventId, section)
+      await this.dbSellableSeats.findSection(eventId, section)
     ).filter((seat) => seat.standing);
 
     if (!slots.length) {
@@ -190,7 +195,7 @@ export class SeatsService {
       const decisions = this.decideAll(seats, commandFor, new Date());
 
       try {
-        await this.eventStore.appendAtomically(
+        await this.dbEventStore.appendAtomically(
           decisions.map((d) => ({
             streamId: d.streamId,
             expectedVersion: d.version,
@@ -209,13 +214,15 @@ export class SeatsService {
   private async load(eventId: string, seatId: string): Promise<LoadedSeat> {
     this.logger.debug({ eventId, seatId }, 'load');
     const streamId = seatStreamId(eventId, seatId);
-    const stored = await this.eventStore.readStream<SeatEvent>(streamId);
+    const stored = await this.dbEventStore.readStream<SeatEvent>(streamId);
+    const version = stored.at(-1)?.version ?? 0;
+    const state = stored.map((e) => e.data).reduce(evolve, initialState);
 
     return {
       seatId,
       streamId,
-      version: stored.at(-1)?.version ?? 0,
-      state: stored.map((e) => e.data).reduce(evolve, initialState),
+      version,
+      state,
     };
   }
 
@@ -233,13 +240,26 @@ export class SeatsService {
           events: decide(commandFor(seat.seatId), seat.state, now),
         };
       } catch (err) {
-        if (!(err instanceof SeatError)) throw err;
-        rejections.push({ seatId: seat.seatId, code: err.code });
-        return { ...seat, events: [] as SeatEvent[] };
+        if (!(err instanceof SeatError)) {
+          throw err;
+        }
+
+        rejections.push({
+          seatId: seat.seatId,
+          code: err.code,
+        });
+
+        return {
+          ...seat,
+          events: [] as SeatEvent[],
+        };
       }
     });
 
-    if (rejections.length) throw new SeatCommandRejected(rejections);
+    if (rejections.length) {
+      throw new SeatCommandRejected(rejections);
+    }
+
     return decisions;
   }
 

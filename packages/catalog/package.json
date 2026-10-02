@@ -98,7 +98,7 @@
     "@opensearch-project/opensearch": "^3.6.0",
     "@org/catalog-schema": "workspace:*",
     "@org/shared": "workspace:*",
-    "bullmq": "^6.3.8",
+    "bullmq": "^6.3.11",
     "drizzle-orm": "1.0.0-rc.4",
     "drizzle-zod": "^0.8.3",
     "iovalkey": "^0.4.0",

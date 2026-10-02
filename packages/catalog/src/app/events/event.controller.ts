@@ -1,7 +1,6 @@
 import {
   Body,
   Controller,
-  Get,
   HttpCode,
   Param,
   ParseUUIDPipe,
@@ -27,12 +26,6 @@ export class EventController {
     @Body(new ZodPipe(createEventPrices)) body: CreateEventPricesInput,
   ) {
     return this.events.upsertPrices(eventId, body);
-  }
-
-  // TODO: block /internal/* at CloudFront or the ALB.
-  @Get('sellable-seats')
-  sellableSeats(@Param('eventId', ParseUUIDPipe) eventId: string) {
-    return this.events.sellableSeats(eventId);
   }
 
   @Post('open-sales')
