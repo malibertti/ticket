@@ -51,7 +51,7 @@ export default [
             },
             {
               sourceTag: 'name:inventory',
-              onlyDependOnLibsWithTags: ['name:shared'],
+              onlyDependOnLibsWithTags: ['name:shared', 'name:catalog-schema'],
             },
           ],
         },

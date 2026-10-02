@@ -11,15 +11,18 @@ import {
 
 async function main() {
   const endpoint = process.env.DYNAMODB_LOCAL_ENDPOINT;
-  const tableName = process.env.INVENTORY_EVENTS_TABLE;
+  const eventsTable = process.env.INVENTORY_EVENTS_TABLE;
+  const sellableSeatsTable = process.env.INVENTORY_SELLABLE_SEATS_TABLE;
 
   if (!endpoint)
     throw new Error(
       'DYNAMODB_LOCAL_ENDPOINT is not set; refusing to run against real AWS',
     );
 
-  if (!tableName) {
-    throw new Error('INVENTORY_EVENTS_TABLE is not set');
+  if (!eventsTable || !sellableSeatsTable) {
+    throw new Error(
+      'INVENTORY_EVENTS_TABLE and INVENTORY_SELLABLE_SEATS_TABLE must be set',
+    );
   }
 
   const client = new DynamoDBClient({
@@ -28,16 +31,11 @@ async function main() {
   });
 
   try {
-    await client.send(new DescribeTableCommand({ TableName: tableName }));
-    console.log(`Table ${tableName} already exists`);
-  } catch (err) {
-    if (!(err instanceof ResourceNotFoundException)) throw err;
-    await client.send(new CreateTableCommand(eventsTableDefinition(tableName)));
-    await waitUntilTableExists(
-      { client, maxWaitTime: 30 },
-      { TableName: tableName },
+    await createTableIfMissing(client, eventsTableDefinition(eventsTable));
+    await createTableIfMissing(
+      client,
+      sellableSeatsTableDefinition(sellableSeatsTable),
     );
-    console.log(`Created table ${tableName}`);
   } finally {
     client.destroy();
   }
@@ -48,11 +46,29 @@ main().catch((err) => {
   process.exit(1);
 });
 
-export function eventsTableDefinition(
-  tableName: string,
-): CreateTableCommandInput {
+async function createTableIfMissing(
+  client: DynamoDBClient,
+  definition: CreateTableCommandInput,
+) {
+  const tableName = definition.TableName!;
+
+  try {
+    await client.send(new DescribeTableCommand({ TableName: tableName }));
+    console.log(`Table ${tableName} already exists`);
+  } catch (err) {
+    if (!(err instanceof ResourceNotFoundException)) throw err;
+    await client.send(new CreateTableCommand(definition));
+    await waitUntilTableExists(
+      { client, maxWaitTime: 30 },
+      { TableName: tableName },
+    );
+    console.log(`Created table ${tableName}`);
+  }
+}
+
+function eventsTableDefinition(eventsTable: string): CreateTableCommandInput {
   return {
-    TableName: tableName,
+    TableName: eventsTable,
     BillingMode: 'PAY_PER_REQUEST',
     AttributeDefinitions: [
       { AttributeName: 'streamId', AttributeType: 'S' },
@@ -66,5 +82,22 @@ export function eventsTableDefinition(
       StreamEnabled: true,
       StreamViewType: 'NEW_IMAGE',
     },
+  };
+}
+
+function sellableSeatsTableDefinition(
+  tableName: string,
+): CreateTableCommandInput {
+  return {
+    TableName: tableName,
+    BillingMode: 'PAY_PER_REQUEST',
+    AttributeDefinitions: [
+      { AttributeName: 'eventId', AttributeType: 'S' },
+      { AttributeName: 'seatId', AttributeType: 'S' },
+    ],
+    KeySchema: [
+      { AttributeName: 'eventId', KeyType: 'HASH' },
+      { AttributeName: 'seatId', KeyType: 'RANGE' },
+    ],
   };
 }

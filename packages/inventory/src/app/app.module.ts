@@ -3,6 +3,7 @@ import { HealthModule } from '@org/shared/health';
 import { LoggerModule } from '@org/shared/logger';
 import { EnvModule } from './env/env.module';
 import { SeatsModule } from './seats/seats.module';
+import { QueuesModule } from './queues/queues.module';
 
 @Module({
   imports: [
@@ -10,6 +11,7 @@ import { SeatsModule } from './seats/seats.module';
     LoggerModule.forRoot('inventory'),
     HealthModule,
     SeatsModule,
+    QueuesModule,
   ],
   controllers: [],
   providers: [],

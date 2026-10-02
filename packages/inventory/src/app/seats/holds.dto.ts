@@ -26,6 +26,16 @@ export const bookSeatsSchema = z.object({
   seatIds,
 });
 
+export const holdStandingSchema = z.object({
+  holdId: z.uuidv4(),
+  section: z
+    .string()
+    .max(64)
+    .regex(/^[^:#\s]+$/, 'expected a section code'),
+  quantity: z.number().int().min(1).max(MAX_SEATS_PER_COMMAND),
+});
+
+export type HoldStandingDto = z.infer<typeof holdStandingSchema>;
 export type HoldSeatsDto = z.infer<typeof holdSeatsSchema>;
 export type ReleaseSeatsDto = z.infer<typeof releaseSeatsSchema>;
 export type BookSeatsDto = z.infer<typeof bookSeatsSchema>;

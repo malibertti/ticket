@@ -13,6 +13,8 @@ import {
   bookSeatsSchema,
   type HoldSeatsDto,
   holdSeatsSchema,
+  type HoldStandingDto,
+  holdStandingSchema,
   type ReleaseSeatsDto,
   releaseSeatsSchema,
 } from './holds.dto';
@@ -30,6 +32,19 @@ export class HoldsController {
     @Body(new ZodPipe(holdSeatsSchema)) body: HoldSeatsDto,
   ) {
     return this.seats.holdSeats(eventId, body.holdId, body.seatIds);
+  }
+
+  @Post('standing')
+  holdStanding(
+    @Param('eventId', ParseUUIDPipe) eventId: string,
+    @Body(new ZodPipe(holdStandingSchema)) body: HoldStandingDto,
+  ) {
+    return this.seats.holdStanding(
+      eventId,
+      body.holdId,
+      body.section,
+      body.quantity,
+    );
   }
 
   @Post(':holdId/release')

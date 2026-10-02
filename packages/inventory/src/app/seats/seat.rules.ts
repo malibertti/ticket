@@ -49,6 +49,8 @@ export function decide(
         type: 'SeatHeld',
         holdId: cmd.holdId,
         expiresAt: new Date(now.getTime() + HOLD_DURATION_MS).toISOString(),
+        priceCents: cmd.priceCents,
+        currency: cmd.currency,
       });
 
       return events;
@@ -147,6 +149,8 @@ export function evolve(state: SeatState, event: SeatEvent): SeatState {
         status: 'held',
         holdId: event.holdId,
         expiresAt: new Date(event.expiresAt),
+        priceCents: event.priceCents,
+        currency: event.currency,
       };
 
     case 'HoldExpired':

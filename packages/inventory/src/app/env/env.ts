@@ -15,9 +15,14 @@ export const schema = z.object({
 
   DYNAMODB_LOCAL_ENDPOINT: z.string().optional(),
   INVENTORY_EVENTS_TABLE: z.string(),
+  INVENTORY_SELLABLE_SEATS_TABLE: z.string(),
+
+  CATALOG_BASE_URL: z.url(),
 
   COGNITO_POOL_ID: z.string(),
   COGNITO_CLIENT_ID: z.string(),
+
+  VALKEY_QUEUE_URL: z.string(),
 });
 
 export type Env = z.infer<typeof schema>;

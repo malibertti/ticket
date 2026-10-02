@@ -15,11 +15,16 @@ const at = (ms: number) => new Date(T0.getTime() + ms);
 const EXPIRY = at(HOLD_DURATION_MS); // when a hold taken at T0 lapses
 const BEFORE_EXPIRY = at(HOLD_DURATION_MS - 1);
 const AFTER_EXPIRY = at(HOLD_DURATION_MS + 60_000);
+const price = {
+  priceCents: 12_000,
+  currency: 'USD' as const,
+};
 
 const heldAt = (holdId: string, time = T0): SeatEvent => ({
   type: 'SeatHeld',
   holdId,
   expiresAt: new Date(time.getTime() + HOLD_DURATION_MS).toISOString(),
+  ...price,
 });
 
 const fold = (events: SeatEvent[]): SeatState =>
@@ -32,7 +37,11 @@ const given = (...past: SeatEvent[]) => ({
 // ---------- HoldSeat ----------
 
 describe('HoldSeat', () => {
-  const hold = (holdId: string): SeatCommand => ({ type: 'HoldSeat', holdId });
+  const hold = (holdId: string): SeatCommand => ({
+    type: 'HoldSeat',
+    holdId,
+    ...price,
+  });
 
   it('holds an available seat for HOLD_DURATION_MS', () => {
     expect(given().when(hold('h1'), T0)).toEqual([heldAt('h1', T0)]);
@@ -250,6 +259,26 @@ describe('ExpireHold', () => {
   });
 });
 
+describe('price capture', () => {
+  it('records the price from the command in SeatHeld', () => {
+    const [held] = given().when(
+      { type: 'HoldSeat', holdId: 'h1', priceCents: 99_00, currency: 'USD' },
+      T0,
+    );
+    expect(held).toMatchObject({ type: 'SeatHeld', priceCents: 99_00 });
+  });
+
+  it('keeps the captured price when retried with a new price', () => {
+    // idempotent retry: no new SeatHeld, so the original price stands
+    expect(
+      given(heldAt('h1')).when(
+        { type: 'HoldSeat', holdId: 'h1', priceCents: 1, currency: 'USD' },
+        BEFORE_EXPIRY,
+      ),
+    ).toEqual([]);
+  });
+});
+
 // ---------- evolve ----------
 
 describe('evolve', () => {
@@ -262,6 +291,7 @@ describe('evolve', () => {
       status: 'held',
       holdId: 'h1',
       expiresAt: EXPIRY,
+      ...price,
     });
   });
 

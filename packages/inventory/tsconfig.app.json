@@ -25,6 +25,9 @@
   "references": [
     {
       "path": "../shared/tsconfig.lib.json"
+    },
+    {
+      "path": "../catalog-schema/tsconfig.lib.json"
     }
   ]
 }
