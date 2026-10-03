@@ -246,22 +246,6 @@ export class EventsService {
     };
   }
 
-  async resync(eventId: string) {
-    const event = await this.findEvent(eventId);
-
-    if (event.status !== 'on_sale') {
-      throw new ConflictException({
-        error: 'EVENT_NOT_ON_SALE',
-        status: event.status,
-      });
-    }
-
-    return {
-      eventId,
-      inventorySynced: await this.manifest.publish(eventId),
-    };
-  }
-
   private async reindexEvent(eventId: string) {
     try {
       const [row] = await this.db
@@ -276,16 +260,5 @@ export class EventsService {
     } catch (err) {
       this.logger.warn({ err, eventId }, 'Search reindex failed');
     }
-  }
-
-  private async findEvent(eventId: string) {
-    const [event] = await this.db
-      .select({ status: events.status, venueId: events.venueId })
-      .from(events)
-      .where(eq(events.id, eventId));
-
-    if (!event) throw new NotFoundException({ error: 'EVENT_NOT_FOUND' });
-
-    return event;
   }
 }

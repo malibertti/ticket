@@ -33,10 +33,4 @@ export class EventController {
   openSales(@Param('eventId', ParseUUIDPipe) eventId: string) {
     return this.events.openSales(eventId);
   }
-
-  @Post('resync')
-  @HttpCode(200)
-  resync(@Param('eventId', ParseUUIDPipe) eventId: string) {
-    return this.events.resync(eventId);
-  }
 }
