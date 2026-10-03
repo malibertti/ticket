@@ -3,7 +3,7 @@ import { Client } from '@opensearch-project/opensearch';
 import { events, venues } from '@org/catalog-schema/schema';
 import { JobProgress } from 'bullmq';
 import { asc, count, eq, gt } from 'drizzle-orm';
-import { type Database, DB_CONNECTION } from '../db/constants';
+import { PgClient } from '../db/constants';
 import { EnvService } from '../env/env.service';
 import {
   EVENTS_ALIAS,
@@ -29,7 +29,7 @@ export class ReindexService {
   private readonly logger = new Logger(ReindexService.name);
 
   constructor(
-    @Inject(DB_CONNECTION) private readonly db: Database,
+    private readonly pg: PgClient,
     @Inject(SEARCH) private readonly client: Client,
     private readonly env: EnvService,
   ) {}
@@ -136,7 +136,7 @@ export class ReindexService {
   }
 
   private async verify(index: string) {
-    const [{ value: expected }] = await this.db
+    const [{ value: expected }] = await this.pg
       .select({ value: count() })
       .from(events);
     const { body } = await this.client.count({ index });
@@ -168,7 +168,7 @@ export class ReindexService {
     let processed = 0;
 
     while (true) {
-      const rows = await this.db
+      const rows = await this.pg
         .select({
           id: events.id,
           title: events.title,

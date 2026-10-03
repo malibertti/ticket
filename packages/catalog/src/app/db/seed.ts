@@ -2,7 +2,7 @@ import * as schema from '@org/catalog-schema/schema';
 import { VenueLayout } from '@org/catalog-schema/types';
 import { JobProgress } from 'bullmq/dist/esm/types';
 import { sql } from 'drizzle-orm';
-import { Database } from './constants';
+import { PgClient } from './constants';
 
 type ProgressFn = (processed: JobProgress) => void;
 
@@ -154,10 +154,10 @@ const events = eventsPre.map((event) => {
 });
 
 // ---------- seed ----------
-export async function seedDb(db: Database, onProgress: ProgressFn) {
+export async function seedDb(pg: PgClient, onProgress: ProgressFn) {
   const started = Date.now();
 
-  return db.transaction(async (tx) => {
+  return pg.transaction(async (tx) => {
     // Truncate first
     await tx.execute(
       sql`TRUNCATE TABLE "catalog"."event_prices", "catalog"."events", "catalog"."venues" CASCADE`,

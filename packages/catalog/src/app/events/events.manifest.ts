@@ -1,5 +1,4 @@
 import {
-  Inject,
   Injectable,
   Logger,
   OnApplicationBootstrap,
@@ -9,7 +8,7 @@ import { eventPrices, events, venues } from '@org/catalog-schema/schema';
 import { Manifest, manifestKey } from '@org/catalog-schema/types';
 import { eq } from 'drizzle-orm';
 import { Valkey } from 'iovalkey';
-import { type Database, DB_CONNECTION } from '../db/constants';
+import { PgClient } from '../db/constants';
 import { EnvService } from '../env/env.service';
 
 /** Writes on-sale events' manifests to Valkey, where inventory reads them on every hold. */
@@ -19,7 +18,7 @@ export class EventsManifest implements OnApplicationBootstrap, OnModuleDestroy {
   private readonly valkey: Valkey;
 
   constructor(
-    @Inject(DB_CONNECTION) private readonly db: Database,
+    private readonly pg: PgClient,
     env: EnvService,
   ) {
     this.valkey = new Valkey(env.get('VALKEY_URL'), {
@@ -53,7 +52,7 @@ export class EventsManifest implements OnApplicationBootstrap, OnModuleDestroy {
   }
 
   private async build(eventId: string): Promise<Manifest> {
-    const [event] = await this.db
+    const [event] = await this.pg
       .select({ layout: venues.layout })
       .from(events)
       .innerJoin(venues, eq(venues.id, events.venueId))
@@ -63,7 +62,7 @@ export class EventsManifest implements OnApplicationBootstrap, OnModuleDestroy {
       throw new Error(`Event ${eventId} not found`);
     }
 
-    const prices = await this.db
+    const prices = await this.pg
       .select({
         section: eventPrices.section,
         priceCents: eventPrices.priceCents,
@@ -79,7 +78,7 @@ export class EventsManifest implements OnApplicationBootstrap, OnModuleDestroy {
   }
 
   private async publishAllOnSale() {
-    const onSale = await this.db
+    const onSale = await this.pg
       .select({ id: events.id })
       .from(events)
       .where(eq(events.status, 'on_sale'));

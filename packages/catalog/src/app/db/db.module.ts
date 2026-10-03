@@ -1,10 +1,10 @@
-import { Inject, Module, OnModuleDestroy } from '@nestjs/common';
+import { Module, OnApplicationShutdown } from '@nestjs/common';
 import { relations } from '@org/catalog-schema/schema';
 import { drizzle } from 'drizzle-orm/node-postgres';
 import { Pool } from 'pg';
 import { EnvService } from '../env/env.service.js';
 import { QueuesModule } from '../queues/queues.module.js';
-import { DB_CONNECTION, DB_POOL } from './constants.js';
+import { PgClient } from './constants.js';
 import { DbController } from './db.controller.js';
 import { DbService } from './db.service.js';
 import { SeedProcessor } from './seed.processor.js';
@@ -12,7 +12,7 @@ import { SeedProcessor } from './seed.processor.js';
 @Module({
   providers: [
     {
-      provide: DB_POOL,
+      provide: Pool,
       inject: [EnvService],
       useFactory(env: EnvService) {
         return new Pool({
@@ -28,8 +28,8 @@ import { SeedProcessor } from './seed.processor.js';
       },
     },
     {
-      provide: DB_CONNECTION,
-      inject: [DB_POOL],
+      provide: PgClient,
+      inject: [Pool],
       useFactory(pool: Pool) {
         return drizzle({
           client: pool,
@@ -41,19 +41,13 @@ import { SeedProcessor } from './seed.processor.js';
     SeedProcessor,
   ],
   imports: [QueuesModule],
-  exports: [DB_CONNECTION],
+  exports: [PgClient],
   controllers: [DbController],
 })
-export class DbModule implements OnModuleDestroy {
-  constructor(
-    @Inject(DB_POOL)
-    private readonly pool: Pool,
-  ) {}
+export class DbModule implements OnApplicationShutdown {
+  constructor(private readonly pool: Pool) {}
 
-  async onModuleDestroy() {
-    await Promise.race([
-      this.pool.end(),
-      new Promise((r) => setTimeout(r, 2000)),
-    ]);
+  async onApplicationShutdown() {
+    await this.pool.end();
   }
 }

@@ -1,13 +1,13 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { sql } from 'drizzle-orm';
-import { type Database, DB_CONNECTION } from './constants';
+import { PgClient } from './constants';
 
 @Injectable()
 export class DbService {
-  constructor(@Inject(DB_CONNECTION) private readonly db: Database) {}
+  constructor(private readonly pg: PgClient) {}
 
   truncate() {
-    return this.db.execute(
+    return this.pg.execute(
       sql`TRUNCATE TABLE "catalog"."event_prices", "catalog"."events", "catalog"."venues" CASCADE`,
     );
   }

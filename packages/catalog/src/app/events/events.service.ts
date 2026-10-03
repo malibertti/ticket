@@ -1,6 +1,5 @@
 import {
   ConflictException,
-  Inject,
   Injectable,
   Logger,
   NotFoundException,
@@ -20,7 +19,7 @@ import {
   sectionCodes,
 } from '@org/catalog-schema/types';
 import { desc, eq, sql } from 'drizzle-orm';
-import { type Database, DB_CONNECTION } from '../db/constants';
+import { PgClient } from '../db/constants';
 import { SearchService } from '../search/search.service';
 import { toEventDoc } from '../search/utils';
 import { EventsManifest } from './events.manifest';
@@ -30,7 +29,7 @@ export class EventsService {
   private readonly logger = new Logger(EventsService.name);
 
   constructor(
-    @Inject(DB_CONNECTION) private readonly db: Database,
+    private readonly pg: PgClient,
     private readonly search: SearchService,
     private readonly manifest: EventsManifest,
   ) {}
@@ -39,13 +38,13 @@ export class EventsService {
     const offset = (page - 1) * limit;
 
     const [rows, [{ count }]] = await Promise.all([
-      this.db
+      this.pg
         .select()
         .from(events)
         .limit(limit)
         .offset(offset)
         .orderBy(desc(events.createdAt)),
-      this.db.select({ count: sql<number>`count(*)::int` }).from(events),
+      this.pg.select({ count: sql<number>`count(*)::int` }).from(events),
     ]);
 
     return {
@@ -58,7 +57,7 @@ export class EventsService {
   }
 
   async getEvent(id: string) {
-    const rows = await this.db
+    const rows = await this.pg
       .select({
         event: events,
         section: eventPrices.section,
@@ -91,7 +90,7 @@ export class EventsService {
   }
 
   async createEvent(input: CreateEventInput) {
-    const [row] = await this.db
+    const [row] = await this.pg
       .insert(events)
       .values({
         ...input,
@@ -101,7 +100,7 @@ export class EventsService {
       .returning();
 
     if (row) {
-      const [venue] = await this.db
+      const [venue] = await this.pg
         .select()
         .from(venues)
         .where(eq(venues.id, input.venueId));
@@ -117,7 +116,7 @@ export class EventsService {
   }
 
   async upsertPrices(eventId: string, prices: CreateEventPricesInput) {
-    const { status, rows } = await this.db.transaction(async (tx) => {
+    const { status, rows } = await this.pg.transaction(async (tx) => {
       const [event] = await tx
         .select({
           status: events.status,
@@ -189,7 +188,7 @@ export class EventsService {
   }
 
   async openSales(eventId: string) {
-    await this.db.transaction(async (tx) => {
+    await this.pg.transaction(async (tx) => {
       const [event] = await tx
         .select({
           status: events.status,
@@ -248,7 +247,7 @@ export class EventsService {
 
   private async reindexEvent(eventId: string) {
     try {
-      const [row] = await this.db
+      const [row] = await this.pg
         .select({ event: events, venue: venues })
         .from(events)
         .innerJoin(venues, eq(venues.id, events.venueId))
