@@ -4,7 +4,6 @@ import {
   TransactWriteCommand,
 } from '@aws-sdk/lib-dynamodb';
 import { Injectable, Logger } from '@nestjs/common';
-import { randomUUID } from 'node:crypto';
 import { EnvService } from '../env/env.service';
 
 interface DomainEvent {
@@ -14,18 +13,15 @@ interface DomainEvent {
 interface StoredEvent<E extends DomainEvent = DomainEvent> {
   streamId: string;
   version: number;
-  eventId: string;
   type: E['type'];
   data: E;
   occurredAt: string;
-  metadata: Record<string, string>;
 }
 
 interface AppendRequest<E extends DomainEvent = DomainEvent> {
   streamId: string;
   expectedVersion: number; // 0 = stream must not exist yet
   events: E[];
-  metadata?: Record<string, string>;
 }
 
 @Injectable()
@@ -84,11 +80,9 @@ export class DbEventStore {
       r.events.map((event, i) => ({
         streamId: r.streamId,
         version: r.expectedVersion + i + 1,
-        eventId: randomUUID(),
         type: event.type,
         data: event,
         occurredAt,
-        metadata: r.metadata ?? {},
       })),
     );
 

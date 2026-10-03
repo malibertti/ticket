@@ -1,8 +1,5 @@
 import { z } from 'zod';
 
-/** Row label used for the unnumbered slots of standing sections: CAMPO:GA:1, CAMPO:GA:2, ... */
-export const STANDING_ROW_LABEL = 'GA';
-
 export function isValidSeatIdPart(part: string): boolean {
   const partPattern = /^[^:#\s]+$/;
 
@@ -43,61 +40,9 @@ export const venueLayoutSchema = z.object({
 });
 
 export type VenueLayout = z.infer<typeof venueLayoutSchema>;
-export type LayoutSection = VenueLayout['sections'][number];
-
-export interface LayoutSeat {
-  seatId: string;
-  section: string;
-  standing: boolean;
-}
 
 export function sectionCodes(layout: VenueLayout): string[] {
   return layout.sections.map((section) => section.code);
-}
-
-export function toSeatId(
-  section: string,
-  rowLabel: string,
-  seatNumber: number,
-): string {
-  const parts = [section, rowLabel, String(seatNumber)];
-  const invalid = parts.find((part) => !isValidSeatIdPart(part));
-
-  if (invalid !== undefined) {
-    throw new Error(`Invalid seat id part: "${invalid}"`);
-  }
-
-  return parts.join(':');
-}
-
-/** Every seat of the layout. Standing sections expand to one unnumbered slot per unit of capacity. */
-export function expandSeats(layout: VenueLayout): LayoutSeat[] {
-  const seats: LayoutSeat[] = [];
-
-  for (const section of layout.sections) {
-    if (section.kind === 'standing') {
-      for (let n = 1; n <= section.capacity; n++) {
-        seats.push({
-          seatId: toSeatId(section.code, STANDING_ROW_LABEL, n),
-          section: section.code,
-          standing: true,
-        });
-      }
-      continue;
-    }
-
-    for (const row of section.rows) {
-      for (let n = 1; n <= row.seats; n++) {
-        seats.push({
-          seatId: toSeatId(section.code, row.label, n),
-          section: section.code,
-          standing: false,
-        });
-      }
-    }
-  }
-
-  return seats;
 }
 
 /** Sections the layout has but the list lacks, and sections the list has but the layout lacks. */

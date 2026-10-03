@@ -26,16 +26,6 @@ export class UnknownSeat extends SeatError {
   readonly code = 'UNKNOWN_SEAT';
 }
 
-export class NotEnoughAvailable extends Error {
-  constructor(
-    readonly section: string,
-    readonly requested: number,
-  ) {
-    super(`Not enough available in ${section} for ${requested}`);
-    this.name = 'NotEnoughAvailable';
-  }
-}
-
 export interface SeatRejection {
   seatId: string;
   code: string;

@@ -16,11 +16,11 @@ import { ZodPipe } from '@org/shared/pipes';
 import { EventsService } from './events.service';
 
 @Controller('events/:eventId')
+@Roles(['admins'])
 export class EventController {
   constructor(private readonly events: EventsService) {}
 
   @Put('prices')
-  @Roles(['admins'])
   createEventPrices(
     @Param('eventId', ParseUUIDPipe) eventId: string,
     @Body(new ZodPipe(createEventPrices)) body: CreateEventPricesInput,

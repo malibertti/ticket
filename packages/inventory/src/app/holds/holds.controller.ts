@@ -7,6 +7,7 @@ import {
   Post,
   UseFilters,
 } from '@nestjs/common';
+import { Public } from '@org/shared/auth';
 import { ZodPipe } from '@org/shared/pipes';
 import { HoldsErrorsFilter } from './holds-errors.filter';
 import {
@@ -14,14 +15,13 @@ import {
   bookSeatsSchema,
   type HoldSeatsDto,
   holdSeatsSchema,
-  type HoldStandingDto,
-  holdStandingSchema,
   type ReleaseSeatsDto,
   releaseSeatsSchema,
 } from './holds.dto';
 import { HoldsService } from './holds.service';
 
 @Controller('events/:eventId/holds')
+@Public()
 @UseFilters(HoldsErrorsFilter)
 export class HoldsController {
   constructor(private readonly seats: HoldsService) {}
@@ -32,19 +32,6 @@ export class HoldsController {
     @Body(new ZodPipe(holdSeatsSchema)) body: HoldSeatsDto,
   ) {
     return this.seats.holdSeats(eventId, body.holdId, body.seatIds);
-  }
-
-  @Post('standing')
-  holdStanding(
-    @Param('eventId', ParseUUIDPipe) eventId: string,
-    @Body(new ZodPipe(holdStandingSchema)) body: HoldStandingDto,
-  ) {
-    return this.seats.holdStanding(
-      eventId,
-      body.holdId,
-      body.section,
-      body.quantity,
-    );
   }
 
   @Post(':holdId/release')

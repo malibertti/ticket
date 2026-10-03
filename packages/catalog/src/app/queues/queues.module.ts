@@ -15,7 +15,7 @@ import { SeedProducer } from './SeedProducer';
         RedisConnection.clientFactory = (opts) =>
           createIORedisClient(new Valkey(opts));
 
-        const url = new URL(env.get('VALKEY_QUEUE_URL')!);
+        const url = new URL(env.get('VALKEY_URL')!);
 
         return {
           connection: {

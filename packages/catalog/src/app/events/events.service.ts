@@ -23,7 +23,7 @@ import { desc, eq, sql } from 'drizzle-orm';
 import { type Database, DB_CONNECTION } from '../db/constants';
 import { SearchService } from '../search/search.service';
 import { toEventDoc } from '../search/utils';
-import { InventoryService } from './inventory.service';
+import { EventsManifest } from './events.manifest';
 
 @Injectable()
 export class EventsService {
@@ -32,7 +32,7 @@ export class EventsService {
   constructor(
     @Inject(DB_CONNECTION) private readonly db: Database,
     private readonly search: SearchService,
-    private readonly inventory: InventoryService,
+    private readonly manifest: EventsManifest,
   ) {}
 
   async getEvents({ page, limit }: PageQuery): Promise<Page<any>> {
@@ -184,9 +184,7 @@ export class EventsService {
       status,
       prices: rows,
       inventorySynced:
-        status === 'on_sale'
-          ? await this.inventory.syncSellableSeats(eventId)
-          : null,
+        status === 'on_sale' ? await this.manifest.publish(eventId) : null,
     };
   }
 
@@ -237,7 +235,7 @@ export class EventsService {
 
     // both after the commit, both best effort: the event is on sale either way
     const [inventorySynced] = await Promise.all([
-      this.inventory.syncSellableSeats(eventId),
+      this.manifest.publish(eventId),
       this.reindexEvent(eventId),
     ]);
 
@@ -260,7 +258,7 @@ export class EventsService {
 
     return {
       eventId,
-      inventorySynced: await this.inventory.syncSellableSeats(eventId),
+      inventorySynced: await this.manifest.publish(eventId),
     };
   }
 

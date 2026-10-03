@@ -1,2 +1,0 @@
-ALTER TABLE "catalog"."event_prices" RENAME CONSTRAINT "event_section_prices_non_negative" TO "event_prices_non_negative";--> statement-breakpoint
-ALTER TABLE "catalog"."event_prices" RENAME CONSTRAINT "event_section_prices_currency_usd" TO "event_prices_currency_usd";

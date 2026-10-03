@@ -27,9 +27,7 @@ export const schema = z.object({
   OPENSEARCH_AUTH: z.enum(['none', 'aws']).default('none'),
   OPENSEARCH_REPLICAS: z.coerce.number().int().min(0).default(0),
 
-  VALKEY_QUEUE_URL: z.string(),
-
-  INVENTORY_BASE_URL: z.url().optional(),
+  VALKEY_URL: z.string(),
 });
 
 export type Env = z.infer<typeof schema>;

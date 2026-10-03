@@ -1,9 +1,10 @@
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
 import { DynamoDBDocumentClient } from '@aws-sdk/lib-dynamodb';
 import { Module, OnApplicationShutdown } from '@nestjs/common';
+import { Valkey } from 'iovalkey';
 import { EnvService } from '../env/env.service';
 import { DbEventStore } from './db.event-store';
-import { DbSellableSeats } from './db.sellable-seats';
+import { DbManifest } from './db.manifest';
 
 @Module({
   providers: [
@@ -33,15 +34,26 @@ import { DbSellableSeats } from './db.sellable-seats';
           marshallOptions: { removeUndefinedValues: true },
         }),
     },
+    {
+      provide: Valkey,
+      inject: [EnvService],
+      useFactory(env: EnvService) {
+        return new Valkey(env.get('VALKEY_URL'));
+      },
+    },
     DbEventStore,
-    DbSellableSeats,
+    DbManifest,
   ],
-  exports: [DbEventStore, DbSellableSeats],
+  exports: [DbEventStore, DbManifest],
 })
 export class DbModule implements OnApplicationShutdown {
-  constructor(private readonly client: DynamoDBClient) {}
+  constructor(
+    private readonly dynamoDb: DynamoDBClient,
+    private readonly valkey: Valkey,
+  ) {}
 
-  onApplicationShutdown() {
-    this.client.destroy();
+  async onApplicationShutdown() {
+    this.dynamoDb.destroy();
+    await this.valkey.quit();
   }
 }

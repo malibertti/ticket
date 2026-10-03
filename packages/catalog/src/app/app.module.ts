@@ -5,7 +5,6 @@ import { LoggerModule } from '@org/shared/logger';
 import { DbModule } from './db/db.module';
 import { EnvModule } from './env/env.module';
 import { EventsModule } from './events/events.module';
-import { InternalModule } from './internal/internal.module';
 import { QueuesModule } from './queues/queues.module';
 import { SearchModule } from './search/search.module';
 import { VenuesModule } from './venues/venues.module';
@@ -21,7 +20,6 @@ import { VenuesModule } from './venues/venues.module';
     VenuesModule,
     SearchModule,
     QueuesModule,
-    InternalModule,
   ],
   controllers: [],
 })

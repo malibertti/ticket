@@ -12,17 +12,14 @@ import {
 async function main() {
   const endpoint = process.env.DYNAMODB_LOCAL_ENDPOINT;
   const eventsTable = process.env.INVENTORY_EVENTS_TABLE;
-  const sellableSeatsTable = process.env.INVENTORY_SELLABLE_SEATS_TABLE;
 
   if (!endpoint)
     throw new Error(
       'DYNAMODB_LOCAL_ENDPOINT is not set; refusing to run against real AWS',
     );
 
-  if (!eventsTable || !sellableSeatsTable) {
-    throw new Error(
-      'INVENTORY_EVENTS_TABLE and INVENTORY_SELLABLE_SEATS_TABLE must be set',
-    );
+  if (!eventsTable) {
+    throw new Error('INVENTORY_EVENTS_TABLE must be set');
   }
 
   const client = new DynamoDBClient({
@@ -32,10 +29,6 @@ async function main() {
 
   try {
     await createTableIfMissing(client, eventsTableDefinition(eventsTable));
-    await createTableIfMissing(
-      client,
-      sellableSeatsTableDefinition(sellableSeatsTable),
-    );
   } finally {
     client.destroy();
   }
@@ -82,22 +75,5 @@ function eventsTableDefinition(eventsTable: string): CreateTableCommandInput {
       StreamEnabled: true,
       StreamViewType: 'NEW_IMAGE',
     },
-  };
-}
-
-function sellableSeatsTableDefinition(
-  tableName: string,
-): CreateTableCommandInput {
-  return {
-    TableName: tableName,
-    BillingMode: 'PAY_PER_REQUEST',
-    AttributeDefinitions: [
-      { AttributeName: 'eventId', AttributeType: 'S' },
-      { AttributeName: 'seatId', AttributeType: 'S' },
-    ],
-    KeySchema: [
-      { AttributeName: 'eventId', KeyType: 'HASH' },
-      { AttributeName: 'seatId', KeyType: 'RANGE' },
-    ],
   };
 }

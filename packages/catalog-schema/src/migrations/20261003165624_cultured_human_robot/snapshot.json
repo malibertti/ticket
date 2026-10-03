@@ -1,9 +1,9 @@
 {
   "version": "8",
   "dialect": "postgres",
-  "id": "986c8717-1c29-4f4d-906a-b5dace1a16fe",
+  "id": "a0fda7c3-3db1-4277-80c1-2fb53a156f13",
   "prevIds": [
-    "06c30a0c-abfe-40b3-a664-0ef9ecfda482"
+    "00000000-0000-0000-0000-000000000000"
   ],
   "ddl": [
     {
@@ -300,7 +300,7 @@
       ],
       "onUpdate": "NO ACTION",
       "onDelete": "CASCADE",
-      "name": "event_section_prices_event_id_events_id_fkey",
+      "name": "event_prices_event_id_events_id_fkey",
       "entityType": "fks",
       "schema": "catalog",
       "table": "event_prices"
@@ -328,7 +328,7 @@
         "section"
       ],
       "nameExplicit": false,
-      "name": "event_section_prices_pkey",
+      "name": "event_prices_pkey",
       "entityType": "pks",
       "schema": "catalog",
       "table": "event_prices"
@@ -355,14 +355,14 @@
     },
     {
       "value": "\"price_cents\" >= 0",
-      "name": "event_section_prices_non_negative",
+      "name": "event_prices_non_negative",
       "entityType": "checks",
       "schema": "catalog",
       "table": "event_prices"
     },
     {
       "value": "\"currency\" = 'USD'",
-      "name": "event_section_prices_currency_usd",
+      "name": "event_prices_currency_usd",
       "entityType": "checks",
       "schema": "catalog",
       "table": "event_prices"
@@ -382,7 +382,5 @@
       "table": "venues"
     }
   ],
-  "renames": [
-    "catalog.event_section_prices->catalog.event_prices"
-  ]
+  "renames": []
 }

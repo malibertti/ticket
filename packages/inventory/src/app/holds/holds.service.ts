@@ -1,15 +1,15 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { SellableSeat } from '@org/catalog-schema/types';
+import { DEFAULT_SALES_CURRENCY } from '@org/catalog-schema/types';
 import { ConcurrencyError, DbEventStore } from '../db/db.event-store';
-import { DbSellableSeats } from '../db/db.sellable-seats';
+import { DbManifest } from '../db/db.manifest';
 import {
-  NotEnoughAvailable,
   SeatCommandRejected,
   SeatError,
   SeatRejection,
   UnknownSeat,
 } from './domain/errors';
 import { decide, evolve } from './domain/rules';
+import { seatPrice } from './domain/seats';
 import {
   initialState,
   SeatCommand,
@@ -30,92 +30,50 @@ interface LoadedSeat {
 export class HoldsService {
   private readonly logger = new Logger(HoldsService.name);
   private readonly maxAttempts = 3;
-  private readonly maxStandingAttempts = 5;
 
   constructor(
     private readonly dbEventStore: DbEventStore,
-    private readonly dbSellableSeats: DbSellableSeats,
+    private readonly dbManifest: DbManifest,
   ) {}
 
   async holdSeats(eventId: string, holdId: string, seatIds: string[]) {
     this.assertSeatIds(seatIds);
 
     // only seats catalog put on sale can be held; their current price is captured in SeatHeld
-    const sellable = await this.dbSellableSeats.findSeats(eventId, seatIds);
-    const unknownCode = new UnknownSeat().code;
-    const unknown = seatIds.filter((seatId) => !sellable.has(seatId));
+    const manifest = await this.dbManifest.get(eventId);
+    const prices = new Map<string, number>();
+
+    for (const seatId of seatIds) {
+      const price = manifest && seatPrice(manifest, seatId);
+      if (price !== undefined) prices.set(seatId, price);
+    }
+
+    const unknown = seatIds.filter((seatId) => !prices.has(seatId));
 
     if (unknown.length) {
       throw new SeatCommandRejected(
         unknown.map((seatId) => ({
           seatId,
-          code: unknownCode,
+          code: new UnknownSeat().code,
         })),
       );
     }
 
-    return this.holdSellable(eventId, holdId, seatIds, sellable);
-  }
-
-  /**
-   * Holds `quantity` unnumbered slots of a standing section; inventory picks which.
-   * Not idempotent: retrying with the same holdId picks new slots (the extras expire with the hold).
-   */
-  async holdStanding(
-    eventId: string,
-    holdId: string,
-    section: string,
-    quantity: number,
-  ) {
-    const slots = (
-      await this.dbSellableSeats.findSection(eventId, section)
-    ).filter((seat) => seat.standing);
-
-    if (!slots.length) {
-      throw new SeatCommandRejected([
-        { seatId: section, code: new UnknownSeat().code },
-      ]);
-    }
-
-    const sellable = new Map(slots.map((slot) => [slot.seatId, slot]));
-    const remaining = shuffle(slots.map((slot) => slot.seatId));
-    let picked = remaining.splice(0, quantity);
-
-    for (let attempt = 1; ; attempt++) {
-      if (picked.length < quantity) {
-        throw new NotEnoughAvailable(section, quantity);
-      }
-
-      try {
-        return await this.holdSellable(eventId, holdId, picked, sellable);
-      } catch (err) {
-        if (!(err instanceof SeatCommandRejected)) throw err;
-        if (attempt >= this.maxStandingAttempts) {
-          throw new NotEnoughAvailable(section, quantity);
-        }
-
-        // swap the taken slots for untried ones and go again
-        const taken = new Set(err.rejections.map((r) => r.seatId));
-        picked = picked.filter((seatId) => !taken.has(seatId));
-        picked.push(...remaining.splice(0, quantity - picked.length));
-      }
-    }
+    return this.holdSellable(eventId, holdId, seatIds, prices);
   }
 
   private async holdSellable(
     eventId: string,
     holdId: string,
     seatIds: string[],
-    sellable: Map<string, SellableSeat>,
+    prices: Map<string, number>,
   ) {
     const states = await this.execute(eventId, seatIds, (seatId) => {
-      const seat = sellable.get(seatId)!;
-
       return {
         type: 'HoldSeat',
         holdId,
-        priceCents: seat.priceCents,
-        currency: seat.currency,
+        priceCents: prices.get(seatId)!,
+        currency: DEFAULT_SALES_CURRENCY,
       };
     });
 
@@ -288,14 +246,4 @@ export function seatStreamId(eventId: string, seatId: string): string {
   }
 
   return `seat${sep}${eventId}${sep}${seatId}`;
-}
-
-/** Fisher–Yates: spreads concurrent buyers across the section so they rarely compete for the same slots. */
-function shuffle<T>(items: T[]): T[] {
-  const result = [...items];
-  for (let i = result.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [result[i], result[j]] = [result[j], result[i]];
-  }
-  return result;
 }

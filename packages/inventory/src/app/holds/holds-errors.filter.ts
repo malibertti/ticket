@@ -3,12 +3,11 @@ import { Response } from 'express';
 import { ConcurrencyError } from '../db/db.event-store';
 import {
   HoldExpiredError,
-  NotEnoughAvailable,
   SeatCommandRejected,
   UnknownSeat,
 } from './domain/errors';
 
-@Catch(SeatCommandRejected, ConcurrencyError, NotEnoughAvailable)
+@Catch(SeatCommandRejected, ConcurrencyError)
 export class HoldsErrorsFilter implements ExceptionFilter {
   private readonly holdExpired = new HoldExpiredError().code;
   private readonly unknownSeat = new UnknownSeat().code;
@@ -21,16 +20,6 @@ export class HoldsErrorsFilter implements ExceptionFilter {
       res.status(409).json({
         error: 'CONCURRENT_MODIFICATION',
         retryable: true,
-      });
-      return;
-    }
-
-    if (err instanceof NotEnoughAvailable) {
-      res.status(409).json({
-        error: 'NOT_ENOUGH_AVAILABLE',
-        retryable: false,
-        section: err.section,
-        requested: err.requested,
       });
       return;
     }
