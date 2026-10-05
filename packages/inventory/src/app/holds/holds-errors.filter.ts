@@ -1,18 +1,23 @@
 import { ArgumentsHost, Catch, ExceptionFilter } from '@nestjs/common';
 import { Response } from 'express';
-import { ConcurrencyError } from '../db/db.event-store';
+import { ConcurrencyError, NotEnoughAvailable } from '../db/db.event-store';
 import {
+  HoldError,
   HoldExpiredError,
   SeatCommandRejected,
   UnknownSeat,
 } from './domain/errors';
 
-@Catch(SeatCommandRejected, ConcurrencyError)
+@Catch(SeatCommandRejected, ConcurrencyError, NotEnoughAvailable, HoldError)
 export class HoldsErrorsFilter implements ExceptionFilter {
   private readonly holdExpired = new HoldExpiredError().code;
   private readonly unknownSeat = new UnknownSeat().code;
 
-  catch(err: SeatCommandRejected | ConcurrencyError, host: ArgumentsHost) {
+  catch(
+    err:
+      SeatCommandRejected | ConcurrencyError | NotEnoughAvailable | HoldError,
+    host: ArgumentsHost,
+  ) {
     const res = host.switchToHttp().getResponse<Response>();
 
     if (err instanceof ConcurrencyError) {
@@ -21,6 +26,27 @@ export class HoldsErrorsFilter implements ExceptionFilter {
         error: 'CONCURRENT_MODIFICATION',
         retryable: true,
       });
+      return;
+    }
+
+    if (err instanceof NotEnoughAvailable) {
+      res.status(409).json({
+        error: 'NOT_ENOUGH_AVAILABLE',
+        retryable: false,
+        sections: err.sections,
+      });
+      return;
+    }
+
+    if (err instanceof HoldError) {
+      const status =
+        err.code === 'HOLD_NOT_FOUND'
+          ? 404
+          : err.code === 'HOLD_EXPIRED'
+            ? 410
+            : 409;
+
+      res.status(status).json({ error: err.code, retryable: false });
       return;
     }
 

@@ -5,7 +5,7 @@ import { venueLayoutSchema } from './venues.js';
  * An on-sale event's manifest: its layout and the price of each section (USD cents).
  * Catalog writes it to Valkey; inventory reads it on every hold.
  */
-export const manifestSchema = z.object({
+export const manifestSchema = z.strictObject({
   eventId: z.uuid(),
   layout: venueLayoutSchema,
   prices: z.record(z.string(), z.number().int().nonnegative()),

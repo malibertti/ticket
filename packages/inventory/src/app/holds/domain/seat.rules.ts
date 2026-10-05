@@ -5,17 +5,10 @@ import {
   SeatAlreadyHeld,
   WrongHoldId,
 } from './errors';
-import { SeatCommand, SeatEvent, SeatState } from './types';
+import { SeatCommand, SeatEvent, SeatState } from './seat.types';
+import { assertNever, isExpired } from './utils';
 
 export const HOLD_DURATION_MS = 10 * 60_000;
-
-function isExpired(state: { expiresAt: Date }, now: Date) {
-  return state.expiresAt <= now;
-}
-
-function assertNever(x: never): never {
-  throw new Error(`Unhandled case: ${JSON.stringify(x)}`);
-}
 
 export function decide(
   cmd: SeatCommand,
@@ -40,7 +33,7 @@ export function decide(
         }
 
         events.push({
-          type: 'HoldExpired',
+          type: 'SeatExpired',
           holdId: state.holdId,
         });
       }
@@ -49,8 +42,6 @@ export function decide(
         type: 'SeatHeld',
         holdId: cmd.holdId,
         expiresAt: new Date(now.getTime() + HOLD_DURATION_MS).toISOString(),
-        priceCents: cmd.priceCents,
-        currency: cmd.currency,
       });
 
       return events;
@@ -75,7 +66,7 @@ export function decide(
       if (isExpired(state, now)) {
         return [
           {
-            type: 'HoldExpired',
+            type: 'SeatExpired',
             holdId: state.holdId,
           },
         ];
@@ -120,7 +111,7 @@ export function decide(
       ];
     }
 
-    case 'ExpireHold': {
+    case 'ExpireSeat': {
       const events: SeatEvent[] = [];
 
       if (
@@ -129,7 +120,7 @@ export function decide(
         isExpired(state, now)
       ) {
         events.push({
-          type: 'HoldExpired',
+          type: 'SeatExpired',
           holdId: state.holdId,
         });
       }
@@ -149,11 +140,9 @@ export function evolve(acc: SeatState, event: SeatEvent): SeatState {
         status: 'held',
         holdId: event.holdId,
         expiresAt: new Date(event.expiresAt),
-        priceCents: event.priceCents,
-        currency: event.currency,
       };
 
-    case 'HoldExpired':
+    case 'SeatExpired':
     case 'SeatReleased':
       return {
         status: 'available',

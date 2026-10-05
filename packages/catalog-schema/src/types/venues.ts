@@ -10,11 +10,16 @@ const idPart = z
   .string()
   .refine(isValidSeatIdPart, 'must not contain spaces, ":" or "#"');
 
-const seatedSection = z.object({
+const seatedSection = z.strictObject({
   kind: z.literal('seated'),
   code: idPart,
   rows: z
-    .array(z.object({ label: idPart, seats: z.number().int().min(1).max(200) }))
+    .array(
+      z.strictObject({
+        label: idPart,
+        seats: z.number().int().min(1).max(200),
+      }),
+    )
     .min(1)
     .refine(
       (rows) => new Set(rows.map((r) => r.label)).size === rows.length,
@@ -22,13 +27,13 @@ const seatedSection = z.object({
     ),
 });
 
-const standingSection = z.object({
+const standingSection = z.strictObject({
   kind: z.literal('standing'),
   code: idPart,
   capacity: z.number().int().min(1).max(100_000),
 });
 
-export const venueLayoutSchema = z.object({
+export const venueLayoutSchema = z.strictObject({
   sections: z
     .array(z.discriminatedUnion('kind', [seatedSection, standingSection]))
     .min(1)

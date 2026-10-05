@@ -5,8 +5,8 @@ import {
   SeatAlreadyHeld,
   WrongHoldId,
 } from './errors';
-import { decide, evolve, HOLD_DURATION_MS } from './rules';
-import { initialState, SeatCommand, SeatEvent, SeatState } from './types';
+import { decide, evolve, HOLD_DURATION_MS } from './seat.rules';
+import { initialState, SeatCommand, SeatEvent, SeatState } from './seat.types';
 
 // ---------- helpers ----------
 
@@ -15,16 +15,11 @@ const at = (ms: number) => new Date(T0.getTime() + ms);
 const EXPIRY = at(HOLD_DURATION_MS); // when a hold taken at T0 lapses
 const BEFORE_EXPIRY = at(HOLD_DURATION_MS - 1);
 const AFTER_EXPIRY = at(HOLD_DURATION_MS + 60_000);
-const price = {
-  priceCents: 12_000,
-  currency: 'USD' as const,
-};
 
 const heldAt = (holdId: string, time = T0): SeatEvent => ({
   type: 'SeatHeld',
   holdId,
   expiresAt: new Date(time.getTime() + HOLD_DURATION_MS).toISOString(),
-  ...price,
 });
 
 const fold = (events: SeatEvent[]): SeatState =>
@@ -40,7 +35,6 @@ describe('HoldSeat', () => {
   const hold = (holdId: string): SeatCommand => ({
     type: 'HoldSeat',
     holdId,
-    ...price,
   });
 
   it('holds an available seat for HOLD_DURATION_MS', () => {
@@ -59,21 +53,21 @@ describe('HoldSeat', () => {
 
   it('takes over a lapsed hold from someone else, recording the expiry first', () => {
     expect(given(heldAt('h1')).when(hold('h2'), AFTER_EXPIRY)).toEqual([
-      { type: 'HoldExpired', holdId: 'h1' },
+      { type: 'SeatExpired', holdId: 'h1' },
       heldAt('h2', AFTER_EXPIRY),
     ]);
   });
 
   it('re-holds with the same holdId after its own hold lapsed (deliberate: holdId reuse)', () => {
     expect(given(heldAt('h1')).when(hold('h1'), AFTER_EXPIRY)).toEqual([
-      { type: 'HoldExpired', holdId: 'h1' },
+      { type: 'SeatExpired', holdId: 'h1' },
       heldAt('h1', AFTER_EXPIRY),
     ]);
   });
 
   it('treats a hold as lapsed exactly at expiresAt', () => {
     expect(given(heldAt('h1')).when(hold('h2'), EXPIRY)).toEqual([
-      { type: 'HoldExpired', holdId: 'h1' },
+      { type: 'SeatExpired', holdId: 'h1' },
       heldAt('h2', EXPIRY),
     ]);
   });
@@ -113,9 +107,9 @@ describe('ReleaseSeat', () => {
     ]);
   });
 
-  it('records HoldExpired when your hold already lapsed', () => {
+  it('records SeatExpired when your hold already lapsed', () => {
     expect(given(heldAt('h1')).when(release('h1'), AFTER_EXPIRY)).toEqual([
-      { type: 'HoldExpired', holdId: 'h1' },
+      { type: 'SeatExpired', holdId: 'h1' },
     ]);
   });
 
@@ -203,17 +197,17 @@ describe('BookSeat', () => {
   });
 });
 
-// ---------- ExpireHold ----------
+// ---------- ExpireSeat ----------
 
-describe('ExpireHold', () => {
+describe('ExpireSeat', () => {
   const expire = (holdId: string): SeatCommand => ({
-    type: 'ExpireHold',
+    type: 'ExpireSeat',
     holdId,
   });
 
   it('expires the matching lapsed hold', () => {
     expect(given(heldAt('h1')).when(expire('h1'), EXPIRY)).toEqual([
-      { type: 'HoldExpired', holdId: 'h1' },
+      { type: 'SeatExpired', holdId: 'h1' },
     ]);
   });
 
@@ -249,32 +243,12 @@ describe('ExpireHold', () => {
   it('cannot cancel a re-hold that reused the same holdId', () => {
     const past = [
       heldAt('h1'),
-      { type: 'HoldExpired', holdId: 'h1' } as SeatEvent,
+      { type: 'SeatExpired', holdId: 'h1' } as SeatEvent,
       heldAt('h1', AFTER_EXPIRY),
     ];
     // the old sweeper job for the first hold fires late, but the new hold is still valid
     expect(
       given(...past).when(expire('h1'), at(HOLD_DURATION_MS + 120_000)),
-    ).toEqual([]);
-  });
-});
-
-describe('price capture', () => {
-  it('records the price from the command in SeatHeld', () => {
-    const [held] = given().when(
-      { type: 'HoldSeat', holdId: 'h1', priceCents: 99_00, currency: 'USD' },
-      T0,
-    );
-    expect(held).toMatchObject({ type: 'SeatHeld', priceCents: 99_00 });
-  });
-
-  it('keeps the captured price when retried with a new price', () => {
-    // idempotent retry: no new SeatHeld, so the original price stands
-    expect(
-      given(heldAt('h1')).when(
-        { type: 'HoldSeat', holdId: 'h1', priceCents: 1, currency: 'USD' },
-        BEFORE_EXPIRY,
-      ),
     ).toEqual([]);
   });
 });
@@ -291,7 +265,6 @@ describe('evolve', () => {
       status: 'held',
       holdId: 'h1',
       expiresAt: EXPIRY,
-      ...price,
     });
   });
 
@@ -299,7 +272,7 @@ describe('evolve', () => {
     expect(
       fold([
         heldAt('h1'),
-        { type: 'HoldExpired', holdId: 'h1' },
+        { type: 'SeatExpired', holdId: 'h1' },
         heldAt('h2', AFTER_EXPIRY),
         { type: 'SeatReleased', holdId: 'h2' },
         heldAt('h3', AFTER_EXPIRY),

@@ -1,11 +1,7 @@
-import { SalesCurrency } from '@org/catalog-schema/types';
-
 export type SeatCommand =
   | {
       type: 'HoldSeat';
       holdId: string;
-      priceCents: number;
-      currency: SalesCurrency;
     }
   | {
       type: 'ReleaseSeat';
@@ -17,7 +13,7 @@ export type SeatCommand =
       orderId: string;
     }
   | {
-      type: 'ExpireHold';
+      type: 'ExpireSeat';
       holdId: string;
     };
 
@@ -25,12 +21,10 @@ export type SeatHeld = {
   type: 'SeatHeld';
   holdId: string;
   expiresAt: string;
-  priceCents: number;
-  currency: SalesCurrency;
 };
 
-export type HoldExpired = {
-  type: 'HoldExpired';
+export type SeatExpired = {
+  type: 'SeatExpired';
   holdId: string;
 };
 
@@ -45,7 +39,7 @@ export type SeatBooked = {
   orderId: string;
 };
 
-export type SeatEvent = SeatHeld | HoldExpired | SeatReleased | SeatBooked;
+export type SeatEvent = SeatHeld | SeatExpired | SeatReleased | SeatBooked;
 
 export type SeatState =
   | {
@@ -55,8 +49,6 @@ export type SeatState =
       status: 'held';
       holdId: string;
       expiresAt: Date;
-      priceCents: number;
-      currency: SalesCurrency;
     }
   | {
       status: 'booked';

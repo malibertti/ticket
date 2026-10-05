@@ -39,3 +39,17 @@ export class SeatCommandRejected extends Error {
     this.name = 'SeatCommandRejected';
   }
 }
+
+/** Something about the hold as a whole (not one seat) prevents the command. */
+export class HoldError extends Error {
+  constructor(
+    readonly code:
+      | 'HOLD_NOT_FOUND'
+      | 'HOLD_NOT_ACTIVE'
+      | 'HOLD_EXPIRED'
+      | 'HOLD_ALREADY_BOOKED',
+  ) {
+    super(code);
+    this.name = 'HoldError';
+  }
+}

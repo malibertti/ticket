@@ -1,6 +1,11 @@
-import { Injectable, Logger } from '@nestjs/common';
-import { DEFAULT_SALES_CURRENCY } from '@org/catalog-schema/types';
-import { ConcurrencyError, DbEventStore } from '../db/db.event-store';
+import { Injectable } from '@nestjs/common';
+import { DEFAULT_SALES_CURRENCY, Manifest } from '@org/catalog-schema/types';
+import {
+  ConcurrencyError,
+  CounterChange,
+  DbEventStore,
+  NotEnoughAvailable,
+} from '../db/db.event-store';
 import { DbManifest } from '../db/db.manifest';
 import {
   SeatCommandRejected,
@@ -8,27 +13,40 @@ import {
   SeatRejection,
   UnknownSeat,
 } from './domain/errors';
-import { decide, evolve } from './domain/rules';
-import { seatPrice } from './domain/seats';
+import { decideHold, evolveHold } from './domain/hold.rules';
+import {
+  HeldSeat,
+  HeldStanding,
+  HoldCommand,
+  HoldEvent,
+  HoldPlaced,
+  HoldState,
+  initialHoldState,
+} from './domain/hold.types';
+import { decide, evolve } from './domain/seat.rules';
 import {
   initialState,
   SeatCommand,
   SeatEvent,
   SeatState,
-} from './domain/types';
+} from './domain/seat.types';
+import { backoffMs, holdStreamId, seatStreamId, sleep } from './utils';
 
-export const MAX_SEATS_PER_COMMAND = 10;
+export const MAX_PLACES_PER_HOLD = 10;
 
-interface LoadedSeat {
-  seatId: string;
+export interface StandingRequest {
+  section: string;
+  quantity: number;
+}
+
+interface Loaded<S> {
   streamId: string;
   version: number;
-  state: SeatState;
+  state: S;
 }
 
 @Injectable()
 export class HoldsService {
-  private readonly logger = new Logger(HoldsService.name);
   private readonly maxAttempts = 3;
 
   constructor(
@@ -36,161 +54,213 @@ export class HoldsService {
     private readonly dbManifest: DbManifest,
   ) {}
 
-  async holdSeats(eventId: string, holdId: string, seatIds: string[]) {
-    this.assertSeatIds(seatIds);
+  /** Holds any mix of seats and standing places, all or nothing. Retrying with the same holdId returns the original hold. */
+  async placeHold(
+    eventId: string,
+    holdId: string,
+    seatIds: string[],
+    standing: StandingRequest[],
+  ) {
+    const places =
+      seatIds.length + standing.reduce((total, s) => total + s.quantity, 0);
 
-    // only seats catalog put on sale can be held; their current price is captured in SeatHeld
-    const manifest = await this.dbManifest.get(eventId);
-    const prices = new Map<string, number>();
-
-    for (const seatId of seatIds) {
-      const price = manifest && seatPrice(manifest, seatId);
-      if (price !== undefined) prices.set(seatId, price);
-    }
-
-    const unknown = seatIds.filter((seatId) => !prices.has(seatId));
-
-    if (unknown.length) {
-      throw new SeatCommandRejected(
-        unknown.map((seatId) => ({
-          seatId,
-          code: new UnknownSeat().code,
-        })),
+    if (places < 1 || places > MAX_PLACES_PER_HOLD) {
+      throw new Error(
+        `Expected 1–${MAX_PLACES_PER_HOLD} places, got ${places}`,
       );
     }
 
-    return this.holdSellable(eventId, holdId, seatIds, prices);
-  }
+    return this.withRetry(async () => {
+      const hold = await this.loadHold(eventId, holdId);
 
-  private async holdSellable(
-    eventId: string,
-    holdId: string,
-    seatIds: string[],
-    prices: Map<string, number>,
-  ) {
-    const states = await this.execute(eventId, seatIds, (seatId) => {
-      return {
-        type: 'HoldSeat',
-        holdId,
-        priceCents: prices.get(seatId)!,
-        currency: DEFAULT_SALES_CURRENCY,
-      };
-    });
-
-    // read from the resulting state: on an idempotent retry no SeatHeld is emitted,
-    // and the price that counts is the one captured by the original hold
-    const seats = states.map((state, i) => {
-      if (state.status !== 'held') {
-        throw new Error(`Seat ${seatIds[i]} not held after HoldSeat`);
+      if (hold.state.status !== 'none') {
+        return toHoldResponse(hold.state.hold);
       }
 
-      return {
-        seatId: seatIds[i],
-        expiresAt: state.expiresAt,
-        priceCents: state.priceCents,
-        currency: state.currency,
-      };
+      // only what catalog put on sale can be held; current prices are captured in the events
+      const manifest = await this.dbManifest.get(eventId);
+      const seats: HeldSeat[] = [];
+      const heldStanding: HeldStanding[] = [];
+      const unknown: string[] = [];
+      const counters: CounterChange[] = [];
+
+      for (const seatId of seatIds) {
+        const priceCents = manifest && seatPrice(manifest, seatId);
+        if (priceCents === undefined) {
+          unknown.push(seatId);
+        } else {
+          seats.push({ seatId, priceCents });
+        }
+      }
+
+      for (const { section, quantity } of standing) {
+        const found = manifest && standingSection(manifest, section);
+        if (!found) {
+          unknown.push(section);
+          continue;
+        }
+        if (quantity > found.capacity) {
+          throw new NotEnoughAvailable([section]);
+        }
+
+        heldStanding.push({
+          section,
+          quantity,
+          priceCents: found.priceCents,
+        });
+
+        counters.push({
+          eventId,
+          section,
+          delta: quantity,
+          capacity: found.capacity,
+        });
+      }
+
+      if (unknown.length) {
+        throw new SeatCommandRejected(
+          unknown.map((seatId) => ({ seatId, code: new UnknownSeat().code })),
+        );
+      }
+
+      const now = new Date();
+      const seatDecisions = await this.decideSeats(
+        eventId,
+        seats.map((s) => s.seatId),
+        () => ({
+          type: 'HoldSeat',
+          holdId,
+        }),
+        now,
+      );
+
+      const holdEvents = decideHold(
+        {
+          type: 'PlaceHold',
+          holdId,
+          seats,
+          standing: heldStanding,
+          currency: DEFAULT_SALES_CURRENCY,
+        },
+        hold.state,
+        now,
+      );
+
+      await this.dbEventStore.appendAtomically(
+        [...seatDecisions, { ...hold, events: holdEvents }].map(toAppend),
+        counters,
+      );
+
+      return toHoldResponse(holdEvents[0] as HoldPlaced);
     });
+  }
 
-    const expiresAt = new Date(
-      Math.min(...seats.map((s) => s.expiresAt.getTime())),
-    );
-
-    return {
+  async releaseHold(eventId: string, holdId: string): Promise<void> {
+    await this.applyToHold(eventId, holdId, { type: 'ReleaseHold' }, () => ({
+      type: 'ReleaseSeat',
       holdId,
-      expiresAt: expiresAt.toISOString(),
-      seats: seats.map(({ seatId, priceCents, currency }) => ({
-        seatId,
-        priceCents,
-        currency,
-      })),
-      totalCents: seats.reduce((total, s) => total + s.priceCents, 0),
-      currency: seats[0].currency,
-    };
+    }));
   }
 
-  async releaseSeats(
-    eventId: string,
-    holdId: string,
-    seatIds: string[],
-  ): Promise<void> {
-    await this.execute(eventId, seatIds, () => {
-      return {
-        type: 'ReleaseSeat',
-        holdId,
-      };
-    });
-  }
-
-  async bookSeats(
+  async bookHold(
     eventId: string,
     holdId: string,
     orderId: string,
-    seatIds: string[],
   ): Promise<void> {
-    await this.execute(eventId, seatIds, () => {
-      return {
-        type: 'BookSeat',
-        holdId,
-        orderId,
-      };
+    await this.applyToHold(
+      eventId,
+      holdId,
+      { type: 'BookHold', orderId },
+      () => ({ type: 'BookSeat', holdId, orderId }),
+    );
+  }
+
+  /** Decides on the hold and on each of its seats, then appends both, with any counter changes, in one transaction. */
+  private async applyToHold(
+    eventId: string,
+    holdId: string,
+    holdCommand: HoldCommand,
+    seatCommand: () => SeatCommand,
+  ) {
+    await this.withRetry(async () => {
+      const hold = await this.loadHold(eventId, holdId);
+      const now = new Date();
+      const holdEvents = decideHold(holdCommand, hold.state, now);
+
+      if (!holdEvents.length || hold.state.status === 'none') {
+        return;
+      }
+
+      const placed = hold.state.hold;
+      const seatDecisions = await this.decideSeats(
+        eventId,
+        placed.seats.map((s) => s.seatId),
+        seatCommand,
+        now,
+      );
+
+      await this.dbEventStore.appendAtomically(
+        [...seatDecisions, { ...hold, events: holdEvents }].map(toAppend),
+        countersFor(eventId, placed, holdEvents),
+      );
     });
   }
 
-  /** Load → decide → append for every seat, all or nothing. Retries on concurrent writes. */
-  private async execute(
-    eventId: string,
-    seatIds: string[],
-    commandFor: (seatId: string) => SeatCommand,
-  ): Promise<SeatState[]> {
-    this.logger.debug({ eventId, seatIds }, 'execute');
-    this.assertSeatIds(seatIds);
-
+  /** Runs fn, retrying the whole read-decide-write when another writer got there first. */
+  private async withRetry<T>(fn: () => Promise<T>): Promise<T> {
     for (let attempt = 1; ; attempt++) {
-      const seats = await Promise.all(
-        seatIds.map((seatId) => this.load(eventId, seatId)),
-      );
-      const decisions = this.decideAll(seats, commandFor, new Date());
-
       try {
-        await this.dbEventStore.appendAtomically(
-          decisions.map((d) => ({
-            streamId: d.streamId,
-            expectedVersion: d.version,
-            events: d.events,
-          })),
-        );
-        return decisions.map((d) => d.events.reduce(evolve, d.state));
+        return await fn();
       } catch (err) {
-        if (!(err instanceof ConcurrencyError) || attempt >= this.maxAttempts)
+        if (!(err instanceof ConcurrencyError) || attempt >= this.maxAttempts) {
           throw err;
+        }
         await sleep(backoffMs(attempt));
       }
     }
   }
 
-  private async load(eventId: string, seatId: string): Promise<LoadedSeat> {
-    this.logger.debug({ eventId, seatId }, 'load');
+  private async loadHold(
+    eventId: string,
+    holdId: string,
+  ): Promise<Loaded<HoldState>> {
+    const streamId = holdStreamId(eventId, holdId);
+    const stored = await this.dbEventStore.readStream<HoldEvent>(streamId);
+
+    return {
+      streamId,
+      version: stored.at(-1)?.version ?? 0,
+      state: stored.map((e) => e.data).reduce(evolveHold, initialHoldState),
+    };
+  }
+
+  private async loadSeat(
+    eventId: string,
+    seatId: string,
+  ): Promise<Loaded<SeatState> & { seatId: string }> {
     const streamId = seatStreamId(eventId, seatId);
     const stored = await this.dbEventStore.readStream<SeatEvent>(streamId);
-    const version = stored.at(-1)?.version ?? 0;
-    const state = stored.map((e) => e.data).reduce(evolve, initialState);
 
     return {
       seatId,
       streamId,
-      version,
-      state,
+      version: stored.at(-1)?.version ?? 0,
+      state: stored.map((e) => e.data).reduce(evolve, initialState),
     };
   }
 
-  private decideAll(
-    seats: LoadedSeat[],
+  /** Loads and decides every seat; rejections are collected so the error names all of them. */
+  private async decideSeats(
+    eventId: string,
+    seatIds: string[],
     commandFor: (seatId: string) => SeatCommand,
     now: Date,
   ) {
-    this.logger.debug({ seats }, 'decideAll');
+    const seats = await Promise.all(
+      seatIds.map((seatId) => this.loadSeat(eventId, seatId)),
+    );
     const rejections: SeatRejection[] = [];
+
     const decisions = seats.map((seat) => {
       try {
         return {
@@ -198,19 +268,9 @@ export class HoldsService {
           events: decide(commandFor(seat.seatId), seat.state, now),
         };
       } catch (err) {
-        if (!(err instanceof SeatError)) {
-          throw err;
-        }
-
-        rejections.push({
-          seatId: seat.seatId,
-          code: err.code,
-        });
-
-        return {
-          ...seat,
-          events: [] as SeatEvent[],
-        };
+        if (!(err instanceof SeatError)) throw err;
+        rejections.push({ seatId: seat.seatId, code: err.code });
+        return { ...seat, events: [] as SeatEvent[] };
       }
     });
 
@@ -220,30 +280,111 @@ export class HoldsService {
 
     return decisions;
   }
-
-  private assertSeatIds(seatIds: string[]) {
-    if (seatIds.length === 0 || seatIds.length > MAX_SEATS_PER_COMMAND) {
-      throw new Error(
-        `Expected 1–${MAX_SEATS_PER_COMMAND} seats, got ${seatIds.length}`,
-      );
-    }
-    if (new Set(seatIds).size !== seatIds.length) {
-      throw new Error('Duplicate seatIds');
-    }
-  }
 }
 
-const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+function toAppend(d: {
+  streamId: string;
+  version: number;
+  events: (SeatEvent | HoldEvent)[];
+}) {
+  return {
+    streamId: d.streamId,
+    expectedVersion: d.version,
+    events: d.events,
+  };
+}
 
-const backoffMs = (attempt: number) =>
-  50 * 2 ** (attempt - 1) + Math.random() * 50; // ~50, ~100, jittered
+/** Releasing or expiring returns standing places; booking keeps them sold. */
+function countersFor(
+  eventId: string,
+  placed: HoldPlaced,
+  events: HoldEvent[],
+): CounterChange[] {
+  const returnsPlaces = events.some(
+    (e) => e.type === 'HoldReleased' || e.type === 'HoldExpired',
+  );
 
-export function seatStreamId(eventId: string, seatId: string): string {
-  const sep = '#';
-
-  if (eventId.includes(sep) || seatId.includes(sep)) {
-    throw new Error(`Ids must not contain "${sep}": ${eventId}, ${seatId}`);
+  if (!returnsPlaces) {
+    return [];
   }
 
-  return `seat${sep}${eventId}${sep}${seatId}`;
+  return placed.standing.map((s) => ({
+    eventId,
+    section: s.section,
+    delta: -s.quantity,
+    capacity: 0, // unused when returning places
+  }));
+}
+
+function toHoldResponse(hold: HoldPlaced) {
+  const seatsTotal = hold.seats.reduce((total, s) => total + s.priceCents, 0);
+  const standingTotal = hold.standing.reduce(
+    (total, s) => total + s.quantity * s.priceCents,
+    0,
+  );
+
+  return {
+    holdId: hold.holdId,
+    expiresAt: hold.expiresAt,
+    seats: hold.seats,
+    standing: hold.standing,
+    totalCents: seatsTotal + standingTotal,
+    currency: hold.currency,
+  };
+}
+
+/**
+ * The price of a seated seat, or undefined if the manifest has no such seat.
+ * Seat ids look like PLATEA-A:02:7 (section:row:number).
+ */
+export function seatPrice(
+  manifest: Manifest,
+  seatId: string,
+): number | undefined {
+  const [sectionCode, rowLabel, seatNumber, ...rest] = seatId.split(':');
+
+  if (rest.length || !seatNumber) {
+    return undefined;
+  }
+
+  const section = manifest.layout.sections.find((s) => s.code === sectionCode);
+
+  if (!section || section.kind !== 'seated') {
+    return undefined;
+  }
+
+  const row = section.rows.find((r) => r.label === rowLabel);
+  const number = Number(seatNumber);
+
+  // String(number) === seatNumber rejects "07" for 7: each seat must have exactly one id,
+  // otherwise two ids would be two event streams for the same physical seat
+  if (
+    !row ||
+    !Number.isInteger(number) ||
+    String(number) !== seatNumber ||
+    number < 1 ||
+    number > row.seats
+  ) {
+    return undefined;
+  }
+
+  return manifest.prices[section.code];
+}
+
+/** A standing section's capacity and price per place, or undefined if it isn't a standing section. */
+export function standingSection(
+  manifest: Manifest,
+  code: string,
+): { capacity: number; priceCents: number } | undefined {
+  const section = manifest.layout.sections.find((s) => s.code === code);
+
+  if (!section || section.kind !== 'standing') {
+    return undefined;
+  }
+
+  const priceCents = manifest.prices[section.code];
+
+  return priceCents === undefined
+    ? undefined
+    : { capacity: section.capacity, priceCents };
 }

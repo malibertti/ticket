@@ -11,12 +11,10 @@ import { Public } from '@org/shared/auth';
 import { ZodPipe } from '@org/shared/pipes';
 import { HoldsErrorsFilter } from './holds-errors.filter';
 import {
-  type BookSeatsDto,
-  bookSeatsSchema,
-  type HoldSeatsDto,
-  holdSeatsSchema,
-  type ReleaseSeatsDto,
-  releaseSeatsSchema,
+  type BookDto,
+  bookSchema,
+  type HoldDto,
+  holdSchema,
 } from './holds.dto';
 import { HoldsService } from './holds.service';
 
@@ -24,14 +22,19 @@ import { HoldsService } from './holds.service';
 @Public()
 @UseFilters(HoldsErrorsFilter)
 export class HoldsController {
-  constructor(private readonly seats: HoldsService) {}
+  constructor(private readonly holds: HoldsService) {}
 
   @Post()
   hold(
     @Param('eventId', ParseUUIDPipe) eventId: string,
-    @Body(new ZodPipe(holdSeatsSchema)) body: HoldSeatsDto,
+    @Body(new ZodPipe(holdSchema)) body: HoldDto,
   ) {
-    return this.seats.holdSeats(eventId, body.holdId, body.seatIds);
+    return this.holds.placeHold(
+      eventId,
+      body.holdId,
+      body.seatIds ?? [],
+      body.standing ?? [],
+    );
   }
 
   @Post(':holdId/release')
@@ -39,9 +42,8 @@ export class HoldsController {
   release(
     @Param('eventId', ParseUUIDPipe) eventId: string,
     @Param('holdId', ParseUUIDPipe) holdId: string,
-    @Body(new ZodPipe(releaseSeatsSchema)) body: ReleaseSeatsDto,
   ) {
-    return this.seats.releaseSeats(eventId, holdId, body.seatIds);
+    return this.holds.releaseHold(eventId, holdId);
   }
 
   @Post(':holdId/book')
@@ -49,8 +51,8 @@ export class HoldsController {
   book(
     @Param('eventId', ParseUUIDPipe) eventId: string,
     @Param('holdId', ParseUUIDPipe) holdId: string,
-    @Body(new ZodPipe(bookSeatsSchema)) body: BookSeatsDto,
+    @Body(new ZodPipe(bookSchema)) body: BookDto,
   ) {
-    return this.seats.bookSeats(eventId, holdId, body.orderId, body.seatIds);
+    return this.holds.bookHold(eventId, holdId, body.orderId);
   }
 }

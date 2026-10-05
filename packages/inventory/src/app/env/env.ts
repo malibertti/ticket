@@ -15,6 +15,7 @@ export const schema = z.object({
 
   DYNAMODB_LOCAL_ENDPOINT: z.string().optional(),
   INVENTORY_EVENTS_TABLE: z.string(),
+  INVENTORY_COUNTERS_TABLE: z.string(),
 
   COGNITO_POOL_ID: z.string(),
   COGNITO_CLIENT_ID: z.string(),

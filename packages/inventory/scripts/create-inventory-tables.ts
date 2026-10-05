@@ -12,6 +12,7 @@ import {
 async function main() {
   const endpoint = process.env.DYNAMODB_LOCAL_ENDPOINT;
   const eventsTable = process.env.INVENTORY_EVENTS_TABLE;
+  const countersTable = process.env.INVENTORY_COUNTERS_TABLE;
 
   if (!endpoint)
     throw new Error(
@@ -22,6 +23,10 @@ async function main() {
     throw new Error('INVENTORY_EVENTS_TABLE must be set');
   }
 
+  if (!countersTable) {
+    throw new Error('INVENTORY_COUNTERS_TABLE must be set');
+  }
+
   const client = new DynamoDBClient({
     region: process.env.AWS_REGION!,
     endpoint,
@@ -29,6 +34,7 @@ async function main() {
 
   try {
     await createTableIfMissing(client, eventsTableDefinition(eventsTable));
+    await createTableIfMissing(client, countersTableDefinition(countersTable));
   } finally {
     client.destroy();
   }
@@ -75,5 +81,21 @@ function eventsTableDefinition(eventsTable: string): CreateTableCommandInput {
       StreamEnabled: true,
       StreamViewType: 'NEW_IMAGE',
     },
+  };
+}
+
+/** One item per standing section: { eventId, section, taken }. */
+function countersTableDefinition(tableName: string): CreateTableCommandInput {
+  return {
+    TableName: tableName,
+    BillingMode: 'PAY_PER_REQUEST',
+    AttributeDefinitions: [
+      { AttributeName: 'eventId', AttributeType: 'S' },
+      { AttributeName: 'section', AttributeType: 'S' },
+    ],
+    KeySchema: [
+      { AttributeName: 'eventId', KeyType: 'HASH' },
+      { AttributeName: 'section', KeyType: 'RANGE' },
+    ],
   };
 }
