@@ -62,7 +62,41 @@ services:
       - '4317:4317' # OTLP gRPC
       - '4318:4318' # OTLP HTTP
 
+  redpanda:
+    image: redpandadata/redpanda:v25.3.1
+    command:
+      - redpanda
+      - start
+      - --mode=dev-container
+      - --smp=1
+      - --kafka-addr=PLAINTEXT://0.0.0.0:9092
+      - --advertise-kafka-addr=PLAINTEXT://localhost:9092
+      - --schema-registry-addr=0.0.0.0:8081
+    ports:
+      - '9092:9092' # Kafka API
+      - '8081:8081' # Schema Registry
+      - '9644:9644' # admin API
+    volumes:
+      - redpanda-data:/var/lib/redpanda/data
+    healthcheck:
+      test: ['CMD-SHELL', 'rpk cluster health | grep -q "Healthy:.*true"']
+      interval: 5s
+      retries: 20
+    restart: unless-stopped
+
+  redpanda-console:
+    image: redpandadata/console:v3.4.0
+    environment:
+      KAFKA_BROKERS: redpanda:9092
+      SCHEMAREGISTRY_ENABLED: 'true'
+      SCHEMAREGISTRY_URLS: http://redpanda:8081
+    ports:
+      - '8080:8080'
+    depends_on: [redpanda]
+    restart: unless-stopped
+
 volumes:
   pgdata:
   osdata:
   dynamodb-data:
+  redpanda-data:

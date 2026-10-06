@@ -13,11 +13,13 @@
     "./package.json": "./package.json"
   },
   "dependencies": {
+    "@kafkajs/confluent-schema-registry": "^4.1.0",
     "@nestjs/config": "^12.0.1",
     "@opentelemetry/api": "^1.9.1",
     "@opentelemetry/auto-instrumentations-node": "^0.80.0",
     "@opentelemetry/sdk-node": "^0.222.0",
     "aws-jwt-verify": "^5.2.1",
+    "kafkajs": "^2.2.4",
     "nestjs-pino": "^5.2.1",
     "zod": "^4.6.5"
   },
