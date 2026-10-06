@@ -4,6 +4,7 @@ import {
   OnApplicationBootstrap,
   OnModuleDestroy,
 } from '@nestjs/common';
+import { SpanStatusCode, trace } from '@opentelemetry/api';
 import { eventPrices, events, venues } from '@org/catalog-schema/schema';
 import { Manifest, manifestKey } from '@org/catalog-schema/types';
 import { eq } from 'drizzle-orm';
@@ -14,6 +15,7 @@ import { EnvService } from '../env/env.service';
 /** Writes on-sale events' manifests to Valkey, where inventory reads them on every hold. */
 @Injectable()
 export class EventsManifest implements OnApplicationBootstrap, OnModuleDestroy {
+  private readonly tracer = trace.getTracer('catalog');
   private readonly logger = new Logger(EventsManifest.name);
   private readonly valkey: Valkey;
 
@@ -41,14 +43,20 @@ export class EventsManifest implements OnApplicationBootstrap, OnModuleDestroy {
 
   /** Best effort: never throws. Returns false so callers can report it and the admin can resync. */
   async publish(eventId: string): Promise<boolean> {
-    try {
-      const manifest = await this.build(eventId);
-      await this.valkey.set(manifestKey(eventId), JSON.stringify(manifest));
-      return true;
-    } catch (err) {
-      this.logger.warn({ err, eventId }, 'Manifest publish failed');
-      return false;
-    }
+    return this.tracer.startActiveSpan('publish manifest', async (span) => {
+      try {
+        const manifest = await this.build(eventId);
+        await this.valkey.set(manifestKey(eventId), JSON.stringify(manifest));
+        return true;
+      } catch (err) {
+        this.logger.warn({ err, eventId }, 'Manifest publish failed');
+        span.recordException(err as Error);
+        span.setStatus({ code: SpanStatusCode.ERROR });
+        return false;
+      } finally {
+        span.end();
+      }
+    });
   }
 
   private async build(eventId: string): Promise<Manifest> {

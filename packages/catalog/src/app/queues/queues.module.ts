@@ -1,6 +1,7 @@
 import { BullModule } from '@nestjs/bullmq';
 import { Module } from '@nestjs/common';
 import { createIORedisClient, RedisConnection } from 'bullmq';
+import { BullMQOtel } from 'bullmq-otel';
 import { Valkey } from 'iovalkey';
 import { EnvService } from '../env/env.service';
 import { FLOWS, QUEUES } from './constants';
@@ -28,6 +29,7 @@ import { SeedProducer } from './seed.producer';
             removeOnComplete: { age: 24 * 3600, count: 100 },
             removeOnFail: { age: 7 * 24 * 3600 },
           },
+          telemetry: new BullMQOtel({ tracerName: 'catalog' }),
         };
       },
     }),

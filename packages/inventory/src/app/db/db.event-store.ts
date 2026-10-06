@@ -4,6 +4,7 @@ import {
   TransactWriteCommand,
 } from '@aws-sdk/lib-dynamodb';
 import { Injectable } from '@nestjs/common';
+import { currentTraceContext } from '@org/shared/telemetry';
 import { EnvService } from '../env/env.service';
 
 interface DomainEvent {
@@ -16,6 +17,7 @@ interface StoredEvent<E extends DomainEvent = DomainEvent> {
   type: E['type'];
   data: E;
   occurredAt: string;
+  traceparent?: string;
 }
 
 interface AppendRequest<E extends DomainEvent = DomainEvent> {
@@ -85,6 +87,7 @@ export class DbEventStore {
     }
 
     const occurredAt = new Date().toISOString();
+    const { traceparent } = currentTraceContext();
     const items: StoredEvent[] = nonEmpty.flatMap((r) =>
       r.events.map((event, i) => ({
         streamId: r.streamId,
@@ -92,6 +95,7 @@ export class DbEventStore {
         type: event.type,
         data: event,
         occurredAt,
+        traceparent,
       })),
     );
 

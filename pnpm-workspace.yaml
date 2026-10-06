@@ -10,3 +10,4 @@ allowBuilds:
   sharp: true
   unrs-resolver: true
   '@nestjs/core': false
+  protobufjs: false
