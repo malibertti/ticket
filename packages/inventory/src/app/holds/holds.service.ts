@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { DEFAULT_SALES_CURRENCY, Manifest } from '@org/catalog-schema/types';
+import { LogMethod } from '@org/shared/logger';
 import {
   ConcurrencyError,
   CounterChange,
@@ -30,6 +31,7 @@ import {
   SeatEvent,
   SeatState,
 } from './domain/seat.types';
+import { HoldExpiryProducer } from './hold-expiry.producer';
 import { backoffMs, holdStreamId, seatStreamId, sleep } from './utils';
 
 export const MAX_PLACES_PER_HOLD = 10;
@@ -52,9 +54,11 @@ export class HoldsService {
   constructor(
     private readonly dbEventStore: DbEventStore,
     private readonly dbManifest: DbManifest,
+    private readonly holdExpiry: HoldExpiryProducer,
   ) {}
 
   /** Holds any mix of seats and standing places, all or nothing. Retrying with the same holdId returns the original hold. */
+  @LogMethod()
   async placeHold(
     eventId: string,
     holdId: string,
@@ -151,10 +155,29 @@ export class HoldsService {
         counters,
       );
 
-      return toHoldResponse(holdEvents[0] as HoldPlaced);
+      const placed = holdEvents[0] as HoldPlaced;
+      this.holdExpiry.schedule(eventId, holdId, placed.expiresAt);
+
+      return toHoldResponse(placed);
     });
   }
 
+  /** Called by the expiry job. Throws while the hold hasn't lapsed yet, so the job retries later. */
+  @LogMethod()
+  async expireHold(eventId: string, holdId: string): Promise<void> {
+    await this.applyToHold(eventId, holdId, { type: 'ExpireHold' }, () => ({
+      type: 'ExpireSeat',
+      holdId,
+    }));
+
+    const hold = await this.loadHold(eventId, holdId);
+
+    if (hold.state.status === 'placed') {
+      throw new Error(`Hold ${holdId} has not lapsed yet`);
+    }
+  }
+
+  @LogMethod()
   async releaseHold(eventId: string, holdId: string): Promise<void> {
     await this.applyToHold(eventId, holdId, { type: 'ReleaseHold' }, () => ({
       type: 'ReleaseSeat',
@@ -162,6 +185,7 @@ export class HoldsService {
     }));
   }
 
+  @LogMethod()
   async bookHold(
     eventId: string,
     holdId: string,

@@ -9,8 +9,8 @@ import {
   Req,
 } from '@nestjs/common';
 import { Roles } from '@org/shared/auth';
-import { ReindexProducer } from '../queues/ReindexProducer';
-import { SeedProducer } from '../queues/SeedProducer';
+import { ReindexProducer } from '../queues/reindex.producer';
+import { SeedProducer } from '../queues/seed.producer';
 import { DbService } from './db.service';
 
 @Controller('db')

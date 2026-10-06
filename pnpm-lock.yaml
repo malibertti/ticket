@@ -555,6 +555,9 @@ importers:
       '@aws-sdk/lib-dynamodb':
         specifier: ^3.1141.0
         version: 3.1141.0(@aws-sdk/client-dynamodb@3.1141.0)
+      '@nestjs/bullmq':
+        specifier: ^12.0.0
+        version: 12.0.0(@nestjs/common@11.2.6(reflect-metadata@0.2.2)(rxjs@7.8.2)(supports-color@8.1.1))(@nestjs/core@11.2.6)(bullmq@6.3.11(pg@8.23.0))
       '@nestjs/common':
         specifier: ^11.0.0
         version: 11.2.6(reflect-metadata@0.2.2)(rxjs@7.8.2)(supports-color@8.1.1)
@@ -573,6 +576,9 @@ importers:
       '@org/shared':
         specifier: workspace:*
         version: link:../shared
+      bullmq:
+        specifier: ^6.3.11
+        version: 6.3.11(pg@8.23.0)
       iovalkey:
         specifier: ^0.4.0
         version: 0.4.0(supports-color@8.1.1)

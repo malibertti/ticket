@@ -3,7 +3,7 @@ import {
   QueryCommand,
   TransactWriteCommand,
 } from '@aws-sdk/lib-dynamodb';
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { EnvService } from '../env/env.service';
 
 interface DomainEvent {
@@ -34,7 +34,6 @@ export interface CounterChange {
 
 @Injectable()
 export class DbEventStore {
-  private readonly logger = new Logger(DbEventStore.name);
   private readonly maxTransactItems = 100;
   private readonly conflictCodes = new Set([
     'ConditionalCheckFailed',
@@ -54,7 +53,6 @@ export class DbEventStore {
   async readStream<E extends DomainEvent>(
     streamId: string,
   ): Promise<StoredEvent<E>[]> {
-    this.logger.debug({ streamId }, 'readStream:start');
     const events: StoredEvent<E>[] = [];
     let startKey: Record<string, unknown> | undefined;
 
@@ -72,7 +70,6 @@ export class DbEventStore {
       startKey = res.LastEvaluatedKey;
     } while (startKey);
 
-    this.logger.debug({ events, streamId }, 'readStream:complete');
     return events;
   }
 
@@ -80,7 +77,6 @@ export class DbEventStore {
     requests: AppendRequest[],
     counters: CounterChange[] = [],
   ): Promise<void> {
-    this.logger.debug({ requests, counters }, 'appendAtomically');
     const nonEmpty = requests.filter((r) => r.events.length > 0);
     const streamIds = nonEmpty.map((r) => r.streamId);
 

@@ -3,9 +3,7 @@ import { Module } from '@nestjs/common';
 import { createIORedisClient, RedisConnection } from 'bullmq';
 import { Valkey } from 'iovalkey';
 import { EnvService } from '../env/env.service';
-import { FLOWS, QUEUES } from './constants';
-import { ReindexProducer } from './reindex.producer';
-import { SeedProducer } from './seed.producer';
+import { QUEUES } from './constants';
 
 @Module({
   imports: [
@@ -15,7 +13,7 @@ import { SeedProducer } from './seed.producer';
         RedisConnection.clientFactory = (opts) =>
           createIORedisClient(new Valkey(opts));
 
-        const url = new URL(env.get('VALKEY_URL')!);
+        const url = new URL(env.get('VALKEY_URL'));
 
         return {
           connection: {
@@ -25,28 +23,15 @@ import { SeedProducer } from './seed.producer';
             tls: url.protocol === 'rediss:' ? {} : undefined,
           },
           defaultJobOptions: {
-            removeOnComplete: { age: 24 * 3600, count: 100 },
+            removeOnComplete: { age: 24 * 3600, count: 1000 },
             removeOnFail: { age: 7 * 24 * 3600 },
           },
         };
       },
     }),
-    BullModule.registerQueue(
-      { name: QUEUES.search }, //
-      { name: QUEUES.seed },
-    ),
-    BullModule.registerFlowProducer({
-      name: FLOWS.seedThenReindex,
-    }),
+    BullModule.registerQueue({ name: QUEUES.holdExpiry }),
   ],
-  providers: [
-    ReindexProducer, //
-    SeedProducer,
-  ],
-  exports: [
-    BullModule, //
-    ReindexProducer,
-    SeedProducer,
-  ],
+  providers: [],
+  exports: [BullModule],
 })
 export class QueuesModule {}
