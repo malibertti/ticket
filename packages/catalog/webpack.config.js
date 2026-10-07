@@ -23,6 +23,7 @@ module.exports = {
     new IgnorePlugin({ resourceRegExp: /^aws-sdk$/ }),
     new IgnorePlugin({ resourceRegExp: /^ioredis$/ }),
     new IgnorePlugin({ resourceRegExp: /^@valkey\/valkey-glide$/ }),
+    new IgnorePlugin({ resourceRegExp: /^@opentelemetry\/winston-transport$/ }),
     new NxAppWebpackPlugin({
       target: 'node',
       compiler: 'tsc',

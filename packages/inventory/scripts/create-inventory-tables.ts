@@ -65,9 +65,9 @@ async function createTableIfMissing(
   }
 }
 
-function eventsTableDefinition(eventsTable: string): CreateTableCommandInput {
+function eventsTableDefinition(name: string): CreateTableCommandInput {
   return {
-    TableName: eventsTable,
+    TableName: name,
     BillingMode: 'PAY_PER_REQUEST',
     AttributeDefinitions: [
       { AttributeName: 'streamId', AttributeType: 'S' },
@@ -84,10 +84,9 @@ function eventsTableDefinition(eventsTable: string): CreateTableCommandInput {
   };
 }
 
-/** One item per standing section: { eventId, section, taken }. */
-function countersTableDefinition(tableName: string): CreateTableCommandInput {
+function countersTableDefinition(name: string): CreateTableCommandInput {
   return {
-    TableName: tableName,
+    TableName: name,
     BillingMode: 'PAY_PER_REQUEST',
     AttributeDefinitions: [
       { AttributeName: 'eventId', AttributeType: 'S' },

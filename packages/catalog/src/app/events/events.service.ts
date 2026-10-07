@@ -14,12 +14,15 @@ import {
 } from '@org/catalog-schema/schema';
 import {
   compareSections,
+  EventPublishedInput,
   Page,
   PageQuery,
   sectionCodes,
 } from '@org/catalog-schema/types';
+import { TOPICS } from '@org/shared/kafka';
 import { desc, eq, sql } from 'drizzle-orm';
 import { PgClient } from '../db/constants';
+import { OutboxService } from '../outbox/outbox.service';
 import { SearchService } from '../search/search.service';
 import { toEventDoc } from '../search/utils';
 import { EventsManifest } from './events.manifest';
@@ -32,6 +35,7 @@ export class EventsService {
     private readonly pg: PgClient,
     private readonly search: SearchService,
     private readonly manifest: EventsManifest,
+    private readonly outbox: OutboxService,
   ) {}
 
   async getEvents({ page, limit }: PageQuery): Promise<Page<any>> {
@@ -121,6 +125,10 @@ export class EventsService {
         .select({
           status: events.status,
           layout: venues.layout,
+          title: events.title,
+          startsAt: events.startsAt,
+          onSaleAt: events.onSaleAt,
+          venueId: events.venueId,
         })
         .from(events)
         .innerJoin(venues, eq(venues.id, events.venueId))
@@ -172,6 +180,20 @@ export class EventsService {
         })
         .returning();
 
+      // Write to outbox
+      if (event.status === 'on_sale') {
+        await this.outbox.write(
+          tx,
+          TOPICS.catalogEvents,
+          eventId,
+          toKafkaEvent({
+            ...event,
+            eventId,
+            prices: rows,
+          }),
+        );
+      }
+
       return {
         status: event.status,
         rows,
@@ -193,6 +215,10 @@ export class EventsService {
         .select({
           status: events.status,
           layout: venues.layout,
+          title: events.title,
+          startsAt: events.startsAt,
+          onSaleAt: events.onSaleAt,
+          venueId: events.venueId,
         })
         .from(events)
         .innerJoin(venues, eq(venues.id, events.venueId))
@@ -208,14 +234,17 @@ export class EventsService {
         });
       }
 
-      const priced = await tx
-        .select({ section: eventPrices.section })
+      const prices = await tx
+        .select({
+          section: eventPrices.section,
+          priceCents: eventPrices.priceCents,
+        })
         .from(eventPrices)
         .where(eq(eventPrices.eventId, eventId));
 
       const { missingSections, unknownSections } = compareSections(
         sectionCodes(event.layout),
-        priced.map((p) => p.section),
+        prices.map((p) => p.section),
       );
 
       if (missingSections.length || unknownSections.length) {
@@ -230,6 +259,19 @@ export class EventsService {
         .update(events)
         .set({ status: 'on_sale' })
         .where(eq(events.id, eventId));
+
+      // Write to outbox
+      await this.outbox.write(
+        tx,
+        TOPICS.catalogEvents,
+        eventId,
+        toKafkaEvent({
+          ...event,
+          eventId,
+          status: 'on_sale',
+          prices,
+        }),
+      );
     });
 
     // both after the commit, both best effort: the event is on sale either way
@@ -260,4 +302,24 @@ export class EventsService {
       this.logger.warn({ err, eventId }, 'Search reindex failed');
     }
   }
+}
+
+/** Everything consumers need about an event, including what it takes to sell it. */
+export function toKafkaEvent(
+  input: EventPublishedInput,
+): Record<string, unknown> {
+  return {
+    type: 'EventPublished',
+    eventId: input.eventId,
+    occurredAt: new Date().toISOString(),
+    title: input.title,
+    status: input.status,
+    startsAt: input.startsAt.toISOString(),
+    onSaleAt: input.onSaleAt.toISOString(),
+    venueId: input.venueId,
+    layout: input.layout,
+    prices: Object.fromEntries(
+      input.prices.map((p) => [p.section, p.priceCents]),
+    ),
+  };
 }

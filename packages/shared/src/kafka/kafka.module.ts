@@ -1,5 +1,10 @@
 import { SchemaRegistry } from '@kafkajs/confluent-schema-registry';
-import { DynamicModule, Module } from '@nestjs/common';
+import {
+  DynamicModule,
+  FactoryProvider,
+  Module,
+  Provider,
+} from '@nestjs/common';
 import { Kafka } from 'kafkajs';
 import {
   createKafka,
@@ -11,20 +16,52 @@ import { KafkaProducer } from './kafka.producer';
 
 @Module({})
 export class KafkaModule {
+  /**
+   * Provides Kafka, SchemaRegistry and KafkaProducer;
+   * import it where a service publishes or consumes. */
   static forRoot(config: KafkaConfig): DynamicModule {
+    return KafkaModule.build({
+      provide: KAFKA_CONFIG,
+      useValue: config,
+    });
+  }
+
+  /** Same, with the config built at startup (e.g. from the service's EnvService). */
+  static forRootAsync(options: {
+    inject: NonNullable<FactoryProvider['inject']>;
+    useFactory: (...args: never[]) => KafkaConfig | Promise<KafkaConfig>;
+  }): DynamicModule {
+    return KafkaModule.build({
+      provide: KAFKA_CONFIG,
+      inject: options.inject,
+      useFactory: options.useFactory,
+    });
+  }
+
+  private static build(configProvider: Provider): DynamicModule {
     return {
       module: KafkaModule,
       global: true,
       providers: [
-        { provide: KAFKA_CONFIG, useValue: config },
-        { provide: Kafka, useFactory: () => createKafka(config) },
+        configProvider,
+        {
+          provide: Kafka,
+          inject: [KAFKA_CONFIG],
+          useFactory: createKafka,
+        },
         {
           provide: SchemaRegistry,
-          useFactory: () => createSchemaRegistry(config),
+          inject: [KAFKA_CONFIG],
+          useFactory: createSchemaRegistry,
         },
         KafkaProducer,
       ],
-      exports: [Kafka, SchemaRegistry, KafkaProducer, KAFKA_CONFIG],
+      exports: [
+        Kafka, //
+        SchemaRegistry,
+        KafkaProducer,
+        KAFKA_CONFIG,
+      ],
     };
   }
 }

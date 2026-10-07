@@ -28,6 +28,9 @@ export const schema = z.object({
   OPENSEARCH_REPLICAS: z.coerce.number().int().min(0).default(0),
 
   VALKEY_URL: z.string(),
+
+  KAFKA_BROKERS: z.string(),
+  SCHEMA_REGISTRY_URL: z.url(),
 });
 
 export type Env = z.infer<typeof schema>;

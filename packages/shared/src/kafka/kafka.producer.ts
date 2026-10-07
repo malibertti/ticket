@@ -1,6 +1,6 @@
 import { SchemaRegistry } from '@kafkajs/confluent-schema-registry';
 import { Inject, Injectable, Logger, OnModuleDestroy } from '@nestjs/common';
-import { Kafka, Producer } from 'kafkajs';
+import { Kafka, Partitioners, Producer } from 'kafkajs';
 import { currentTraceContext } from '../telemetry';
 import { KAFKA_CONFIG, type KafkaConfig, registerSchema } from './kafka.client';
 import { Topic } from './schemas';
@@ -20,6 +20,8 @@ export class KafkaProducer implements OnModuleDestroy {
     this.producer = kafka.producer({
       idempotent: true, // no duplicates from the producer's own retries
       allowAutoTopicCreation: false,
+      createPartitioner: Partitioners.DefaultPartitioner,
+      retry: { retries: Number.MAX_SAFE_INTEGER },
     });
     this.logger.debug({ clientId: config.clientId }, 'Producer created');
   }
