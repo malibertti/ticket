@@ -5,7 +5,8 @@ import {
   OnModuleDestroy,
 } from '@nestjs/common';
 import { context, trace } from '@opentelemetry/api';
-import { Kafka, KafkaMessage } from 'kafkajs';
+import { Kafka, type KafkaMessage } from 'kafkajs';
+import { LogMethod } from '../logger';
 import { traceContextFrom } from '../telemetry';
 import { Topic } from './schemas';
 
@@ -20,8 +21,11 @@ export abstract class KafkaConsumer<T>
   implements OnApplicationBootstrap, OnModuleDestroy
 {
   protected readonly logger = new Logger(this.constructor.name);
-  private readonly consumer;
   private readonly tracer = trace.getTracer('kafka');
+  private readonly consumer;
+  private stopped = false;
+
+  protected abstract handle(message: T, key: string): Promise<void>;
 
   constructor(
     kafka: Kafka,
@@ -32,22 +36,41 @@ export abstract class KafkaConsumer<T>
     this.consumer = kafka.consumer({ groupId });
   }
 
-  async onApplicationBootstrap() {
-    await this.consumer.connect();
-    await this.consumer.subscribe({ topic: this.topic, fromBeginning: true });
-    await this.consumer.run({
-      eachMessage: ({ message }) => this.consume(message),
-    });
-
-    this.logger.log({ topic: this.topic }, 'Consuming');
+  onApplicationBootstrap() {
+    void this.start();
   }
 
   async onModuleDestroy() {
+    this.stopped = true;
     await this.consumer.disconnect();
   }
 
-  protected abstract handle(message: T, key: string): Promise<void>;
+  private async start() {
+    for (let attempt = 1; !this.stopped; attempt++) {
+      try {
+        await this.consumer.connect();
+        await this.consumer.subscribe({
+          topic: this.topic,
+          fromBeginning: true,
+        });
+        await this.consumer.run({
+          eachMessage: ({ message }) => this.consume(message),
+        });
 
+        this.logger.log({ topic: this.topic }, 'Consuming');
+        return;
+      } catch (err) {
+        const delayMs = Math.min(30_000, 1_000 * 2 ** attempt);
+        this.logger.warn(
+          { err, topic: this.topic, attempt, retryInMs: delayMs },
+          'Consumer could not start, retrying',
+        );
+        await new Promise((resolve) => setTimeout(resolve, delayMs));
+      }
+    }
+  }
+
+  @LogMethod()
   private async consume(message: KafkaMessage) {
     const decoded = (await this.registry.decode(message.value!)) as T;
     const key = message.key?.toString() ?? '';

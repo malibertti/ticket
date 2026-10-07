@@ -100,6 +100,7 @@
   "dependencies": {
     "@aws-sdk/client-dynamodb": "^3.1141.0",
     "@aws-sdk/lib-dynamodb": "^3.1141.0",
+    "@kafkajs/confluent-schema-registry": "^4.1.0",
     "@nestjs/bullmq": "^12.0.0",
     "@nestjs/common": "^11.0.0",
     "@nestjs/config": "^12.0.1",
@@ -111,6 +112,7 @@
     "bullmq": "^6.3.11",
     "bullmq-otel": "^2.0.1",
     "iovalkey": "^0.4.0",
+    "kafkajs": "^2.2.4",
     "reflect-metadata": "^0.2.0",
     "rxjs": "^7.8.0",
     "tslib": "^2.3.0",

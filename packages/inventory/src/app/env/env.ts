@@ -21,6 +21,9 @@ export const schema = z.object({
   COGNITO_CLIENT_ID: z.string(),
 
   VALKEY_URL: z.string(),
+
+  KAFKA_BROKERS: z.string(),
+  SCHEMA_REGISTRY_URL: z.url(),
 });
 
 export type Env = z.infer<typeof schema>;

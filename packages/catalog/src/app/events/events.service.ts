@@ -25,7 +25,6 @@ import { PgClient } from '../db/constants';
 import { OutboxService } from '../outbox/outbox.service';
 import { SearchService } from '../search/search.service';
 import { toEventDoc } from '../search/utils';
-import { EventsManifest } from './events.manifest';
 
 @Injectable()
 export class EventsService {
@@ -34,7 +33,6 @@ export class EventsService {
   constructor(
     private readonly pg: PgClient,
     private readonly search: SearchService,
-    private readonly manifest: EventsManifest,
     private readonly outbox: OutboxService,
   ) {}
 
@@ -119,8 +117,8 @@ export class EventsService {
     return row;
   }
 
-  async upsertPrices(eventId: string, prices: CreateEventPricesInput) {
-    const { status, rows } = await this.pg.transaction(async (tx) => {
+  async upsertPrices(eventId: string, pricesInput: CreateEventPricesInput) {
+    const { status, prices } = await this.pg.transaction(async (tx) => {
       const [event] = await tx
         .select({
           status: events.status,
@@ -139,7 +137,7 @@ export class EventsService {
         throw new NotFoundException({ error: 'EVENT_NOT_FOUND' });
       }
 
-      const sections = prices.map((p) => p.section);
+      const sections = pricesInput.map((p) => p.section);
 
       if (new Set(sections).size !== sections.length) {
         throw new UnprocessableEntityException({ error: 'DUPLICATE_SECTIONS' });
@@ -168,9 +166,9 @@ export class EventsService {
       //     ),
       //   );
 
-      const rows = await tx
+      const prices = await tx
         .insert(eventPrices)
-        .values(prices.map((price) => ({ ...price, eventId })))
+        .values(pricesInput.map((price) => ({ ...price, eventId })))
         .onConflictDoUpdate({
           target: [eventPrices.eventId, eventPrices.section],
           set: {
@@ -189,23 +187,22 @@ export class EventsService {
           toKafkaEvent({
             ...event,
             eventId,
-            prices: rows,
+            prices,
           }),
         );
       }
 
       return {
         status: event.status,
-        rows,
+        prices,
       };
     });
 
     return {
       eventId,
       status,
-      prices: rows,
-      inventorySynced:
-        status === 'on_sale' ? await this.manifest.publish(eventId) : null,
+      prices,
+      published: status === 'on_sale' ? true : null,
     };
   }
 
@@ -274,16 +271,13 @@ export class EventsService {
       );
     });
 
-    // both after the commit, both best effort: the event is on sale either way
-    const [inventorySynced] = await Promise.all([
-      this.manifest.publish(eventId),
-      this.reindexEvent(eventId),
-    ]);
+    // after the commit, best effort: the event is on sale either way
+    await this.reindexEvent(eventId);
 
     return {
       eventId,
       status: 'on_sale' as const,
-      inventorySynced,
+      published: true,
     };
   }
 

@@ -4,12 +4,11 @@ import { OutboxModule } from '../outbox/outbox.module';
 import { SearchModule } from '../search/search.module';
 import { EventController } from './event.controller';
 import { EventsController } from './events.controller';
-import { EventsManifest } from './events.manifest';
 import { EventsService } from './events.service';
 
 @Module({
   imports: [DbModule, SearchModule, OutboxModule],
-  providers: [EventsService, EventsManifest],
+  providers: [EventsService],
   controllers: [EventsController, EventController],
 })
 export class EventsModule {}
