@@ -24,6 +24,7 @@
     "zod": "^4.6.5"
   },
   "nx": {
+    "name": "shared",
     "tags": [
       "type:lib",
       "name:shared"

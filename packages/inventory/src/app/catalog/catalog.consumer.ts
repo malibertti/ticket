@@ -28,9 +28,9 @@ export class CatalogConsumer extends KafkaConsumer<EventPublished> {
 
   @LogMethod()
   protected async handle(message: EventPublished): Promise<void> {
-    if (message.status !== 'on_sale') {
-      return; // only on-sale events can be held
-    }
+    // if (message.status !== 'on_sale') {
+    //   return; // only on-sale events can be held
+    // }
 
     await this.dbManifest.set({
       eventId: message.eventId,

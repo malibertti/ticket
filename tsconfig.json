@@ -7,9 +7,6 @@
       "path": "./packages/admin"
     },
     {
-      "path": "./packages/web-e2e"
-    },
-    {
       "path": "./packages/web"
     },
     {

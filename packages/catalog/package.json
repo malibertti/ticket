@@ -3,6 +3,7 @@
   "version": "0.0.1",
   "private": true,
   "nx": {
+    "name": "catalog",
     "tags": [
       "type:service",
       "name:catalog"
@@ -62,16 +63,16 @@
           "build"
         ],
         "options": {
-          "buildTarget": "@org/catalog:build",
+          "buildTarget": "catalog:build",
           "runBuildTargetDependencies": false,
           "port": 9230
         },
         "configurations": {
           "development": {
-            "buildTarget": "@org/catalog:build:development"
+            "buildTarget": "catalog:build:development"
           },
           "production": {
-            "buildTarget": "@org/catalog:build:production"
+            "buildTarget": "catalog:build:production"
           }
         }
       },
