@@ -6,7 +6,7 @@ import {
   OnModuleDestroy,
   OnModuleInit,
 } from '@nestjs/common';
-import { Kafka, Partitioners, Producer } from 'kafkajs';
+import { IHeaders, Kafka, Partitioners, Producer } from 'kafkajs';
 import { currentTraceContext } from '../telemetry';
 import { KAFKA_CONFIG, type KafkaConfig } from './config';
 import { SCHEMAS, subjectFor, Topic } from './schemas';
@@ -16,6 +16,7 @@ export class KafkaProducer implements OnModuleInit, OnModuleDestroy {
   private readonly logger = new Logger(KafkaProducer.name);
   private readonly producer: Producer;
   private readonly schemaIds = new Map<Topic, Promise<number>>();
+  private connecting?: Promise<void>;
 
   constructor(
     kafka: Kafka,
@@ -33,10 +34,12 @@ export class KafkaProducer implements OnModuleInit, OnModuleDestroy {
 
   async onModuleInit() {
     try {
-      await this.producer.connect();
-      this.logger.debug('Producer connected');
+      await this.connect();
     } catch (err) {
-      this.logger.warn({ err }, 'Producer did not connect');
+      this.logger.warn(
+        { err },
+        'Producer did not connect, will retry on publish',
+      );
     }
   }
 
@@ -53,7 +56,14 @@ export class KafkaProducer implements OnModuleInit, OnModuleDestroy {
    * Publishes one message, encoded against the topic's registered schema.
    * The key decides the partition, so messages with the same key keep their order.
    */
-  async publish(topic: Topic, key: string, message: object): Promise<void> {
+  async publish(
+    topic: Topic,
+    key: string,
+    message: object,
+    headers: IHeaders = currentTraceContext(),
+  ): Promise<void> {
+    await this.connect();
+
     const value = await this.registry.encode(
       await this.schemaId(topic),
       message,
@@ -65,10 +75,19 @@ export class KafkaProducer implements OnModuleInit, OnModuleDestroy {
         {
           key,
           value,
-          headers: { ...currentTraceContext() },
-        }, // continues this trace in the consumer
+          headers,
+        },
       ],
     });
+  }
+
+  private connect(): Promise<void> {
+    this.connecting ??= this.producer.connect().catch((err) => {
+      this.connecting = undefined;
+      throw err;
+    });
+
+    return this.connecting;
   }
 
   private schemaId(topic: Topic): Promise<number> {

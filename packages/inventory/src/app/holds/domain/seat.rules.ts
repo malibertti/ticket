@@ -8,7 +8,8 @@ import {
 import { SeatCommand, SeatEvent, SeatState } from './seat.types';
 import { assertNever, isExpired } from './utils';
 
-export const HOLD_DURATION_MS = 10 * 60_000;
+// export const HOLD_DURATION_MS = 10 * 60_000;
+export const HOLD_DURATION_MS = 2 * 60_000;
 
 export function decide(
   cmd: SeatCommand,

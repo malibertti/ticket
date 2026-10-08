@@ -24,6 +24,8 @@ export const schema = z.object({
 
   KAFKA_BROKERS: z.string(),
   SCHEMA_REGISTRY_URL: z.url(),
+
+  STREAM_POLLER: z.stringbool().optional().default(false),
 });
 
 export type Env = z.infer<typeof schema>;

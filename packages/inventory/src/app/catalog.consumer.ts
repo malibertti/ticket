@@ -4,7 +4,7 @@ import type { Manifest } from '@org/catalog-schema/types';
 import { KafkaConsumer, TOPICS } from '@org/shared/kafka';
 import { LogMethod } from '@org/shared/logger';
 import { Kafka } from 'kafkajs';
-import { DbManifest } from '../db/db.manifest';
+import { DbManifest } from './db/db.manifest';
 
 /** The parts of catalog's EventPublished that inventory uses. */
 interface EventPublished extends Manifest {

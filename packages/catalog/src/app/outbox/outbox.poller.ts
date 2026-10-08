@@ -14,7 +14,7 @@ import { PgClient } from '../db/constants';
 @Injectable()
 export class OutboxPoller implements OnApplicationBootstrap, OnModuleDestroy {
   private readonly logger = new Logger(OutboxPoller.name);
-  private readonly intervalMs = 10_000; // just for dev
+  private readonly intervalMs = 1_000;
   private readonly batchSize = 100;
   private timer?: NodeJS.Timeout;
   private running = false;
