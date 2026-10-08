@@ -4,8 +4,8 @@
   "license": "MIT",
   "scripts": {
     "build": "nx run-many -t build --parallel=5",
-    "dev:web": "nx run-many -t dev --parallel=3 -p tag:type:web",
-    "dev:service": "nx run-many -t serve --parallel=3 -p tag:type:service",
+    "serve:web": "nx run-many -t dev --parallel=3 -p tag:type:web",
+    "serve:service": "nx run-many -t serve --parallel=3 -p tag:type:service",
     "cdk:deploy": "nx deploy @org/infra",
     "cdk:destroy": "nx destroy @org/infra"
   },

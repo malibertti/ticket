@@ -1,16 +1,21 @@
-import { SchemaRegistry } from '@kafkajs/confluent-schema-registry';
-import { Inject, Injectable, Logger, OnModuleDestroy } from '@nestjs/common';
+import { SchemaRegistry, SchemaType } from '@kafkajs/confluent-schema-registry';
+import {
+  Inject,
+  Injectable,
+  Logger,
+  OnModuleDestroy,
+  OnModuleInit,
+} from '@nestjs/common';
 import { Kafka, Partitioners, Producer } from 'kafkajs';
 import { currentTraceContext } from '../telemetry';
-import { KAFKA_CONFIG, type KafkaConfig, registerSchema } from './kafka.client';
-import { Topic } from './schemas';
+import { KAFKA_CONFIG, type KafkaConfig } from './config';
+import { SCHEMAS, subjectFor, Topic } from './schemas';
 
 @Injectable()
-export class KafkaProducer implements OnModuleDestroy {
+export class KafkaProducer implements OnModuleInit, OnModuleDestroy {
   private readonly logger = new Logger(KafkaProducer.name);
   private readonly producer: Producer;
   private readonly schemaIds = new Map<Topic, Promise<number>>();
-  private connected?: Promise<void>;
 
   constructor(
     kafka: Kafka,
@@ -26,9 +31,21 @@ export class KafkaProducer implements OnModuleDestroy {
     this.logger.debug({ clientId: config.clientId }, 'Producer created');
   }
 
+  async onModuleInit() {
+    try {
+      await this.producer.connect();
+      this.logger.debug('Producer connected');
+    } catch (err) {
+      this.logger.warn({ err }, 'Producer did not connect');
+    }
+  }
+
   async onModuleDestroy() {
-    if (this.connected) {
+    try {
       await this.producer.disconnect();
+      this.logger.debug('Producer disconnected');
+    } catch (err) {
+      this.logger.warn({ err }, 'Producer did not disconnect');
     }
   }
 
@@ -37,8 +54,6 @@ export class KafkaProducer implements OnModuleDestroy {
    * The key decides the partition, so messages with the same key keep their order.
    */
   async publish(topic: Topic, key: string, message: object): Promise<void> {
-    await this.connect();
-
     const value = await this.registry.encode(
       await this.schemaId(topic),
       message,
@@ -56,19 +71,24 @@ export class KafkaProducer implements OnModuleDestroy {
     });
   }
 
-  private connect(): Promise<void> {
-    this.connected ??= this.producer.connect();
-
-    return this.connected;
-  }
-
   private schemaId(topic: Topic): Promise<number> {
     let id = this.schemaIds.get(topic);
 
     if (!id) {
-      id = registerSchema(this.registry, topic, this.logger);
+      id = this.registerSchema(topic);
       this.schemaIds.set(topic, id);
     }
+
+    return id;
+  }
+
+  private async registerSchema(topic: Topic) {
+    const { id } = await this.registry.register(
+      { type: SchemaType.JSON, schema: JSON.stringify(SCHEMAS[topic]) },
+      { subject: subjectFor(topic) },
+    );
+
+    this.logger.log({ topic, schemaId: id }, 'Schema registered');
 
     return id;
   }

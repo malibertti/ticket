@@ -5,26 +5,21 @@ import {
   Module,
   Provider,
 } from '@nestjs/common';
-import { Kafka } from 'kafkajs';
-import {
-  createKafka,
-  createSchemaRegistry,
-  KAFKA_CONFIG,
-  KafkaConfig,
-} from './kafka.client';
+import { Kafka, logLevel } from 'kafkajs';
+import { KAFKA_CONFIG, KafkaConfig } from './config';
 import { KafkaProducer } from './kafka.producer';
 
 @Module({})
 export class KafkaModule {
-  /**
-   * Provides Kafka, SchemaRegistry and KafkaProducer;
-   * import it where a service publishes or consumes. */
-  static forRoot(config: KafkaConfig): DynamicModule {
-    return KafkaModule.build({
-      provide: KAFKA_CONFIG,
-      useValue: config,
-    });
-  }
+  // /**
+  //  * Provides Kafka, SchemaRegistry and KafkaProducer;
+  //  * import it where a service publishes or consumes. */
+  // static forRoot(config: KafkaConfig): DynamicModule {
+  //   return KafkaModule.build({
+  //     provide: KAFKA_CONFIG,
+  //     useValue: config,
+  //   });
+  // }
 
   /** Same, with the config built at startup (e.g. from the service's EnvService). */
   static forRootAsync(options: {
@@ -47,12 +42,21 @@ export class KafkaModule {
         {
           provide: Kafka,
           inject: [KAFKA_CONFIG],
-          useFactory: createKafka,
+          useFactory({ clientId, brokers }: KafkaConfig): Kafka {
+            return new Kafka({
+              clientId,
+              brokers,
+              logLevel: logLevel.WARN,
+              retry: { initialRetryTime: 300, retries: 8 },
+            });
+          },
         },
         {
           provide: SchemaRegistry,
           inject: [KAFKA_CONFIG],
-          useFactory: createSchemaRegistry,
+          useFactory({ schemaRegistryUrl }: KafkaConfig) {
+            return new SchemaRegistry({ host: schemaRegistryUrl });
+          },
         },
         KafkaProducer,
       ],
@@ -60,7 +64,7 @@ export class KafkaModule {
         Kafka, //
         SchemaRegistry,
         KafkaProducer,
-        KAFKA_CONFIG,
+        // KAFKA_CONFIG,
       ],
     };
   }

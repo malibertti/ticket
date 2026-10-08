@@ -7,7 +7,7 @@ import { OutboxService } from './outbox.service';
 
 @Module({
   imports: [
-    DbModule, //
+    DbModule,
     KafkaModule.forRootAsync({
       inject: [EnvService],
       useFactory(env: EnvService) {
