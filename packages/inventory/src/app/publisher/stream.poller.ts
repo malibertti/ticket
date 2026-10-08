@@ -59,13 +59,12 @@ export class StreamPoller implements OnApplicationBootstrap, OnModuleDestroy {
   }
 
   onApplicationBootstrap() {
-    if (!this.env.get('STREAM_POLLER')) {
-      return;
+    // local only: in AWS the stream publisher Lambda does this
+    if (this.env.get('DYNAMODB_LOCAL_ENDPOINT')) {
+      this.timer = setInterval(() => void this.tick(), this.intervalMs);
+      this.timer.unref();
+      this.logger.log('Stream poller started');
     }
-
-    this.timer = setInterval(() => void this.tick(), this.intervalMs);
-    this.timer.unref();
-    this.logger.log('Stream poller started');
   }
 
   onModuleDestroy() {

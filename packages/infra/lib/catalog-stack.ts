@@ -17,6 +17,7 @@ import { Domain } from 'aws-cdk-lib/aws-opensearchservice';
 import { DatabaseInstance } from 'aws-cdk-lib/aws-rds';
 import { Construct } from 'constructs';
 import { join } from 'node:path';
+import { KafkaStack } from './kafka.stack';
 
 interface CatalogStackProps extends StackProps {
   vpc: IVpc;
@@ -29,6 +30,7 @@ interface CatalogStackProps extends StackProps {
   searchDomain: Domain;
   cacheSg: SecurityGroup;
   cacheUrl: string;
+  kafka: KafkaStack;
 }
 
 export class CatalogStack extends Stack {
@@ -77,6 +79,9 @@ export class CatalogStack extends Stack {
         OPENSEARCH_AUTH: 'aws',
         OPENSEARCH_REPLICAS: '0',
         VALKEY_URL: props.cacheUrl,
+        KAFKA_AUTH: 'iam',
+        KAFKA_BROKERS: props.kafka.bootstrapBrokers,
+        SCHEMA_REGISTRY_URL: props.kafka.schemaRegistryUrl,
       },
       secrets: {
         DB_PASSWORD: Secret.fromSecretsManager(props.db.secret!, 'password'),
@@ -99,6 +104,10 @@ export class CatalogStack extends Stack {
       maxHealthyPercent: 200,
       vpcSubnets: { subnetType: SubnetType.PRIVATE_WITH_EGRESS },
       circuitBreaker: { rollback: true },
+      securityGroups: [
+        new SecurityGroup(this, 'ApiSg', { vpc: props.vpc }),
+        props.kafka.clientSg,
+      ],
     });
 
     service.connections.allowTo(props.db, Port.tcp(5432));
@@ -106,6 +115,7 @@ export class CatalogStack extends Stack {
     service.connections.allowTo(props.cacheSg, Port.tcp(6379));
 
     props.searchDomain.grantReadWrite(taskDefinition.taskRole);
+    props.kafka.grantClient(taskDefinition.taskRole);
 
     const scaling = service.autoScaleTaskCount({
       minCapacity: 1,

@@ -1,7 +1,6 @@
 import { SchemaRegistry } from '@kafkajs/confluent-schema-registry';
-import { KafkaConfig, KafkaProducer } from '@org/shared/kafka';
+import { createKafka, KafkaConfig, KafkaProducer } from '@org/shared/kafka';
 import type { DynamoDBBatchResponse, DynamoDBStreamEvent } from 'aws-lambda';
-import { Kafka, logLevel } from 'kafkajs';
 import { publishStreamRecord, StreamRecordLike } from './publishStreamRecord';
 
 /** Created once per Lambda container and reused across invocations. */
@@ -41,17 +40,11 @@ function getProducer(): KafkaProducer {
       clientId: 'inventory-stream-publisher',
       brokers: process.env.KAFKA_BROKERS!.split(','),
       schemaRegistryUrl: process.env.SCHEMA_REGISTRY_URL!,
+      awsRegion: process.env.AWS_REGION,
     };
 
-    const kafka = new Kafka({
-      clientId: config.clientId,
-      brokers: config.brokers,
-      logLevel: logLevel.WARN,
-      retry: { initialRetryTime: 300, retries: 8 },
-    });
-
+    const kafka = createKafka(config);
     const registry = new SchemaRegistry({ host: config.schemaRegistryUrl });
-
     producer = new KafkaProducer(kafka, registry, config);
   }
 

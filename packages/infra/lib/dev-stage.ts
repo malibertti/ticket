@@ -5,6 +5,7 @@ import { AuthStack } from './auth-stack';
 import { CatalogStack } from './catalog-stack';
 import { DataStack } from './data-stack';
 import { GatewayStack } from './gateway-stack';
+import { KafkaStack } from './kafka.stack';
 import { MigrateStack } from './migrate-stack';
 import { NetworkStack } from './network-stack';
 import { SearchStack } from './search-stack';
@@ -71,6 +72,12 @@ export class DevStage extends Stage {
     });
     Tags.of(search).add('component', 'search');
 
+    const kafka = new KafkaStack(this, 'KafkaStack', {
+      env: props.env,
+      vpc: network.vpc,
+    });
+    Tags.of(kafka).add('component', 'kafka');
+
     const catalog = new CatalogStack(this, 'CatalogStack', {
       env: props.env,
       vpc: network.vpc,
@@ -83,6 +90,7 @@ export class DevStage extends Stage {
       searchDomain: search.searchDomain,
       cacheSg: search.cacheSg,
       cacheUrl: search.cacheUrl,
+      kafka,
     });
     Tags.of(catalog).add('component', 'catalog');
 

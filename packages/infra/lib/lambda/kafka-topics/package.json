@@ -1,0 +1,9 @@
+{
+  "name": "kafka-topics",
+  "version": "1.0.0",
+  "private": true,
+  "dependencies": {
+    "aws-msk-iam-sasl-signer-js": "^1.0.3",
+    "kafkajs": "^2.2.4"
+  }
+}

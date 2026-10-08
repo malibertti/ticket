@@ -5,8 +5,8 @@ import {
   Module,
   Provider,
 } from '@nestjs/common';
-import { Kafka, logLevel } from 'kafkajs';
-import { KAFKA_CONFIG, KafkaConfig } from './config';
+import { Kafka } from 'kafkajs';
+import { createKafka, KAFKA_CONFIG, KafkaConfig } from './config';
 import { KafkaProducer } from './kafka.producer';
 
 @Module({})
@@ -42,13 +42,8 @@ export class KafkaModule {
         {
           provide: Kafka,
           inject: [KAFKA_CONFIG],
-          useFactory({ clientId, brokers }: KafkaConfig): Kafka {
-            return new Kafka({
-              clientId,
-              brokers,
-              logLevel: logLevel.WARN,
-              retry: { initialRetryTime: 300, retries: 8 },
-            });
+          useFactory(config: KafkaConfig): Kafka {
+            return createKafka(config);
           },
         },
         {

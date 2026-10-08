@@ -19,6 +19,7 @@
     "@opentelemetry/auto-instrumentations-node": "^0.80.0",
     "@opentelemetry/sdk-node": "^0.222.0",
     "aws-jwt-verify": "^5.2.1",
+    "aws-msk-iam-sasl-signer-js": "^1.0.3",
     "kafkajs": "^2.2.4",
     "nestjs-pino": "^5.2.1",
     "zod": "^4.6.5"

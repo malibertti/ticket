@@ -15,6 +15,8 @@ import { OutboxService } from './outbox.service';
           clientId: 'catalog',
           brokers: env.get('KAFKA_BROKERS').split(','),
           schemaRegistryUrl: env.get('SCHEMA_REGISTRY_URL'),
+          awsRegion:
+            env.get('KAFKA_AUTH') === 'iam' ? env.get('AWS_REGION') : undefined,
         };
       },
     }),
