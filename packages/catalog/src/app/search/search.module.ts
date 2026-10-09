@@ -8,6 +8,7 @@ import { QueuesModule } from '../queues/queues.module';
 import { SEARCH } from './constants';
 import { ReindexController } from './reindex.controller';
 import { ReindexService } from './reindex.service';
+import { SearchConsumer } from './search.consumer';
 import { SearchController } from './search.controller';
 import { SearchProcessor } from './search.processor';
 import { SearchService } from './search.service';
@@ -40,6 +41,7 @@ import { SearchService } from './search.service';
     },
     SearchService,
     SearchProcessor,
+    SearchConsumer,
     ReindexService,
   ],
   imports: [DbModule, QueuesModule],

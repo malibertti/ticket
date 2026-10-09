@@ -97,6 +97,19 @@ services:
     depends_on: [redpanda]
     restart: unless-stopped
 
+  redpanda-topics:
+    image: redpandadata/redpanda:v25.3.1
+    depends_on:
+      redpanda:
+        condition: service_started
+    entrypoint: ['/bin/bash', '-c']
+    command:
+      - |
+        until rpk cluster health -X brokers=redpanda:9092 | grep -q 'Healthy:.*true'; do sleep 1; done
+        rpk topic create catalog.events.v1 -p 3 -c cleanup.policy=compact -X brokers=redpanda:9092 || true
+        rpk topic create inventory.events.v1 -p 3 -X brokers=redpanda:9092 || true
+    restart: 'no'
+
 volumes:
   pgdata:
   osdata:

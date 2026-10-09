@@ -4,12 +4,15 @@ import {
   HttpCode,
   Param,
   ParseUUIDPipe,
+  Patch,
   Post,
   Put,
 } from '@nestjs/common';
 import {
   createEventPrices,
+  updateEventInput,
   type CreateEventPricesInput,
+  type UpdateEventInput,
 } from '@org/catalog-schema/schema';
 import { Roles } from '@org/shared/auth';
 import { ZodPipe } from '@org/shared/pipes';
@@ -19,6 +22,14 @@ import { EventsService } from './events.service';
 @Roles(['admins'])
 export class EventController {
   constructor(private readonly events: EventsService) {}
+
+  @Patch()
+  updateEvent(
+    @Param('eventId', ParseUUIDPipe) eventId: string,
+    @Body(new ZodPipe(updateEventInput)) body: UpdateEventInput,
+  ) {
+    return this.events.updateEvent(eventId, body);
+  }
 
   @Put('prices')
   createEventPrices(

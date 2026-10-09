@@ -2,6 +2,7 @@ import { SchemaRegistry } from '@kafkajs/confluent-schema-registry';
 import { Injectable } from '@nestjs/common';
 import {
   type InventoryMessage,
+  inventoryMessageSchema,
   KafkaConsumer,
   TOPICS,
 } from '@org/shared/kafka';
@@ -24,7 +25,21 @@ export class SeatMapConsumer extends KafkaConsumer<InventoryMessage> {
     super(kafka, registry, TOPICS.inventoryEvents, 'inventory-seat-map');
   }
 
-  protected async handle(message: InventoryMessage): Promise<void> {
+  protected async handle(
+    message: InventoryMessage,
+    key: string,
+  ): Promise<void> {
+    const parsed = inventoryMessageSchema.safeParse(message);
+
+    // TODO: implement DLQ
+    if (!parsed.success) {
+      this.logger.error(
+        { key, issues: parsed.error.issues },
+        'Skipping invalid InventoryEvent',
+      );
+      return;
+    }
+
     const seat = parseSeatStreamId(message.streamId);
 
     if (!seat) {

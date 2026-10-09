@@ -1,7 +1,6 @@
 import {
   ConflictException,
   Injectable,
-  Logger,
   NotFoundException,
   UnprocessableEntityException,
 } from '@nestjs/common';
@@ -10,6 +9,7 @@ import {
   CreateEventPricesInput,
   eventPrices,
   events,
+  UpdateEventInput,
   venues,
 } from '@org/catalog-schema/schema';
 import {
@@ -19,20 +19,17 @@ import {
   PageQuery,
   sectionCodes,
 } from '@org/catalog-schema/types';
-import { TOPICS } from '@org/shared/kafka';
+import { CatalogEvent, TOPICS } from '@org/shared/kafka';
 import { desc, eq, sql } from 'drizzle-orm';
 import { PgClient } from '../db/constants';
 import { OutboxService } from '../outbox/outbox.service';
-import { SearchService } from '../search/search.service';
-import { toEventDoc } from '../search/utils';
 
 @Injectable()
 export class EventsService {
-  private readonly logger = new Logger(EventsService.name);
+  // private readonly logger = new Logger(EventsService.name);
 
   constructor(
     private readonly pg: PgClient,
-    private readonly search: SearchService,
     private readonly outbox: OutboxService,
   ) {}
 
@@ -101,20 +98,56 @@ export class EventsService {
       })
       .returning();
 
-    if (row) {
-      const [venue] = await this.pg
+    return row;
+  }
+
+  async updateEvent(eventId: string, input: UpdateEventInput) {
+    return this.pg.transaction(async (tx) => {
+      const [event] = await tx
+        .update(events)
+        .set(input)
+        .where(eq(events.id, eventId))
+        .returning();
+
+      if (!event) {
+        throw new NotFoundException({ error: 'EVENT_NOT_FOUND' });
+      }
+
+      const [venue] = await tx
         .select()
         .from(venues)
-        .where(eq(venues.id, input.venueId));
+        .where(eq(venues.id, event.venueId));
 
-      try {
-        await this.search.indexEvent(toEventDoc(row, venue));
-      } catch (err) {
-        this.logger.warn({ err }, `Search indexing failed for event ${row.id}`);
-      }
-    }
+      const prices = await tx
+        .select({
+          section: eventPrices.section,
+          priceCents: eventPrices.priceCents,
+        })
+        .from(eventPrices)
+        .where(eq(eventPrices.eventId, eventId));
 
-    return row;
+      // Write to outbox
+      await this.outbox.write(
+        tx,
+        TOPICS.catalogEvents,
+        eventId,
+        toKafkaEvent({
+          ...event,
+          eventId,
+          prices,
+          venueName: venue.name,
+          city: venue.city,
+          latitude: venue.latitude,
+          longitude: venue.longitude,
+          layout: venue.layout,
+        }),
+      );
+
+      return {
+        eventId,
+        status: event.status,
+      };
+    });
   }
 
   async upsertPrices(eventId: string, pricesInput: CreateEventPricesInput) {
@@ -127,6 +160,10 @@ export class EventsService {
           startsAt: events.startsAt,
           onSaleAt: events.onSaleAt,
           venueId: events.venueId,
+          venueName: venues.name,
+          city: venues.city,
+          latitude: venues.latitude,
+          longitude: venues.longitude,
         })
         .from(events)
         .innerJoin(venues, eq(venues.id, events.venueId))
@@ -202,7 +239,6 @@ export class EventsService {
       eventId,
       status,
       prices,
-      published: status === 'on_sale' ? true : null,
     };
   }
 
@@ -216,6 +252,10 @@ export class EventsService {
           startsAt: events.startsAt,
           onSaleAt: events.onSaleAt,
           venueId: events.venueId,
+          venueName: venues.name,
+          city: venues.city,
+          latitude: venues.latitude,
+          longitude: venues.longitude,
         })
         .from(events)
         .innerJoin(venues, eq(venues.id, events.venueId))
@@ -271,37 +311,15 @@ export class EventsService {
       );
     });
 
-    // after the commit, best effort: the event is on sale either way
-    await this.reindexEvent(eventId);
-
     return {
       eventId,
       status: 'on_sale' as const,
-      published: true,
     };
-  }
-
-  private async reindexEvent(eventId: string) {
-    try {
-      const [row] = await this.pg
-        .select({ event: events, venue: venues })
-        .from(events)
-        .innerJoin(venues, eq(venues.id, events.venueId))
-        .where(eq(events.id, eventId));
-
-      if (row) {
-        await this.search.indexEvent(toEventDoc(row.event, row.venue));
-      }
-    } catch (err) {
-      this.logger.warn({ err, eventId }, 'Search reindex failed');
-    }
   }
 }
 
 /** Everything consumers need about an event, including what it takes to sell it. */
-export function toKafkaEvent(
-  input: EventPublishedInput,
-): Record<string, unknown> {
+export function toKafkaEvent(input: EventPublishedInput): CatalogEvent {
   return {
     type: 'EventPublished',
     eventId: input.eventId,
@@ -311,6 +329,10 @@ export function toKafkaEvent(
     startsAt: input.startsAt.toISOString(),
     onSaleAt: input.onSaleAt.toISOString(),
     venueId: input.venueId,
+    venueName: input.venueName,
+    city: input.city,
+    latitude: input.latitude,
+    longitude: input.longitude,
     layout: input.layout,
     prices: Object.fromEntries(
       input.prices.map((p) => [p.section, p.priceCents]),

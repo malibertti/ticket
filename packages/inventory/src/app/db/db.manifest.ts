@@ -14,7 +14,7 @@ export class DbManifest {
 
   constructor(private readonly valkey: Valkey) {}
 
-  /** The event's manifest, or undefined when nothing is published (the event isn't on sale). */
+  /** The event's manifest, or undefined when event not on sale. */
   async get(eventId: string): Promise<Manifest | undefined> {
     return this.tracer.startActiveSpan('valkey get manifest', async (span) => {
       try {
@@ -35,6 +35,17 @@ export class DbManifest {
           manifestKey(manifest.eventId),
           JSON.stringify(manifestSchema.parse(manifest)),
         );
+      } finally {
+        span.end();
+      }
+    });
+  }
+
+  /** Removes the event's manifest. */
+  async del(eventId: string): Promise<void> {
+    await this.tracer.startActiveSpan('valkey del manifest', async (span) => {
+      try {
+        await this.valkey.del(manifestKey(eventId));
       } finally {
         span.end();
       }

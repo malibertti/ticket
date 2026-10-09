@@ -102,7 +102,7 @@ const eventsPre = [
   {
     title: 'Madonna — The Girlie Show',
     venueIndex: 0,
-    startsAt: '2026-10-05T23:00:00Z',
+    startsAt: '2027-10-05T23:00:00Z',
   },
   {
     title: 'Madonna — Confessions Tour',

@@ -1,4 +1,5 @@
 import { events, venues } from '@org/catalog-schema/schema';
+import { CatalogEvent } from '@org/shared/kafka';
 
 type Event = Pick<
   typeof events.$inferSelect,
@@ -38,6 +39,23 @@ export function toEventDoc(event: Event, venue: Venue): EventDoc {
     location: {
       lat: venue.latitude,
       lon: venue.longitude,
+    },
+  };
+}
+
+export function eventDocFromMessage(message: CatalogEvent): EventDoc {
+  return {
+    id: message.eventId,
+    title: message.title,
+    venueId: message.venueId,
+    venueName: message.venueName,
+    city: message.city,
+    startsAt: message.startsAt,
+    onSaleAt: message.onSaleAt,
+    status: message.status,
+    location: {
+      lat: message.latitude,
+      lon: message.longitude,
     },
   };
 }

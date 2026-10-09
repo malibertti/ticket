@@ -2,7 +2,7 @@ import { Inject, Injectable, Logger } from '@nestjs/common';
 import { Client } from '@opensearch-project/opensearch';
 import { events, venues } from '@org/catalog-schema/schema';
 import { JobProgress } from 'bullmq';
-import { asc, count, eq, gt } from 'drizzle-orm';
+import { and, asc, count, eq, gt } from 'drizzle-orm';
 import { PgClient } from '../db/constants';
 import { EnvService } from '../env/env.service';
 import {
@@ -138,7 +138,9 @@ export class ReindexService {
   private async verify(index: string) {
     const [{ value: expected }] = await this.pg
       .select({ value: count() })
-      .from(events);
+      .from(events)
+      .where(eq(events.status, 'on_sale'));
+
     const { body } = await this.client.count({ index });
 
     if (body.count !== expected) {
@@ -183,7 +185,12 @@ export class ReindexService {
         })
         .from(events)
         .innerJoin(venues, eq(events.venueId, venues.id))
-        .where(lastId ? gt(events.id, lastId) : undefined)
+        .where(
+          and(
+            eq(events.status, 'on_sale'),
+            lastId ? gt(events.id, lastId) : undefined,
+          ),
+        )
         .orderBy(asc(events.id))
         .limit(BATCH_SIZE);
 

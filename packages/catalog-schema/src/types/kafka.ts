@@ -7,6 +7,10 @@ export interface EventPublishedInput {
   startsAt: Date;
   onSaleAt: Date;
   venueId: string;
+  venueName: string;
   layout: VenueLayout;
   prices: { section: string; priceCents: number }[];
+  city: string;
+  latitude: number;
+  longitude: number;
 }

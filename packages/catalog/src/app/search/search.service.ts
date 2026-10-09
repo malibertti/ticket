@@ -63,6 +63,13 @@ export class SearchService implements OnModuleInit {
     });
   }
 
+  removeEvent(eventId: string) {
+    return this.client.delete(
+      { index: EVENTS_ALIAS, id: eventId },
+      { ignore: [404] },
+    );
+  }
+
   async searchEvents({ q, city, page, limit }: SearchEventsQuery) {
     const res = await this.client.search({
       index: EVENTS_ALIAS,
@@ -83,6 +90,7 @@ export class SearchService implements OnModuleInit {
                 ]
               : [],
             filter: [
+              { term: { status: 'on_sale' } },
               { range: { startsAt: { gte: 'now' } } },
               ...(city ? [{ term: { city } }] : []),
             ],

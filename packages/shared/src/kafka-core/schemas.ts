@@ -1,3 +1,5 @@
+import { z } from 'zod';
+
 /** Topics both services agree on, with the JSON Schema registered for each. */
 export const TOPICS = {
   catalogEvents: 'catalog.events.v1',
@@ -14,76 +16,58 @@ export function subjectFor(topic: Topic): string {
   return `${topic}-value`;
 }
 
-const section = {
-  type: 'object',
-  required: ['kind', 'code'],
-  properties: {
-    kind: { type: 'string', enum: ['seated', 'standing'] },
-    code: { type: 'string' },
-    capacity: { type: 'integer' },
-    rows: {
-      type: 'array',
-      items: {
-        type: 'object',
-        required: ['label', 'seats'],
-        properties: {
-          label: { type: 'string' },
-          seats: { type: 'integer' },
-        },
-      },
-    },
-  },
-};
+const seatedSection = z.object({
+  kind: z.literal('seated'),
+  code: z.string(),
+  rows: z.array(z.object({ label: z.string(), seats: z.number().int() })),
+});
 
-/** What catalog publishes about an event: its details plus everything needed to sell it. */
-const catalogEventSchema = {
-  $schema: 'http://json-schema.org/draft-07/schema#',
-  title: 'CatalogEvent',
-  type: 'object',
-  required: ['type', 'eventId', 'occurredAt'],
-  properties: {
-    type: { type: 'string', enum: ['EventPublished'] },
-    eventId: { type: 'string' },
-    occurredAt: { type: 'string' },
-    title: { type: 'string' },
-    status: { type: 'string' },
-    startsAt: { type: 'string' },
-    onSaleAt: { type: 'string' },
-    venueId: { type: 'string' },
-    layout: {
-      type: 'object',
-      required: ['sections'],
-      properties: { sections: { type: 'array', items: section } },
-    },
-    prices: { type: 'object', additionalProperties: { type: 'integer' } },
-  },
-};
+const standingSection = z.object({
+  kind: z.literal('standing'),
+  code: z.string(),
+  capacity: z.number().int(),
+});
 
-/** What inventory publishes: one message per stored event, as written to its streams. */
-const inventoryEventSchema = {
-  $schema: 'http://json-schema.org/draft-07/schema#',
-  title: 'InventoryEvent',
-  type: 'object',
-  required: ['streamId', 'version', 'type', 'data', 'occurredAt'],
-  properties: {
-    streamId: { type: 'string' },
-    version: { type: 'integer' },
-    type: { type: 'string' },
-    occurredAt: { type: 'string' },
-    data: { type: 'object' },
-  },
-};
+const section = z.discriminatedUnion('kind', [seatedSection, standingSection]);
+
+export const catalogEventSchema = z
+  .strictObject({
+    // strictObject → additionalProperties: false
+    type: z.literal('EventPublished'),
+    eventId: z.string(),
+    occurredAt: z.string(),
+    title: z.string(),
+    status: z.string(),
+    startsAt: z.string(),
+    onSaleAt: z.string(),
+    venueId: z.string(),
+    venueName: z.string(),
+    city: z.string(),
+    latitude: z.number(),
+    longitude: z.number(),
+    layout: z.object({ sections: z.array(section) }),
+    prices: z.record(z.string(), z.number().int()),
+  })
+  .meta({ title: 'CatalogEvent' });
+
+export const inventoryMessageSchema = z
+  .strictObject({
+    streamId: z.string(),
+    version: z.number().int(),
+    type: z.string(),
+    occurredAt: z.string(),
+    data: z.record(z.string(), z.unknown()),
+  })
+  .meta({ title: 'InventoryEvent' });
+
+export type InventoryMessage = z.infer<typeof inventoryMessageSchema>;
+export type CatalogEvent = z.infer<typeof catalogEventSchema>;
 
 export const SCHEMAS: Record<Topic, object> = {
-  [TOPICS.catalogEvents]: catalogEventSchema,
-  [TOPICS.inventoryEvents]: inventoryEventSchema,
+  [TOPICS.catalogEvents]: z.toJSONSchema(catalogEventSchema, {
+    target: 'draft-7',
+  }),
+  [TOPICS.inventoryEvents]: z.toJSONSchema(inventoryMessageSchema, {
+    target: 'draft-7',
+  }),
 };
-
-/** What inventory publishes: one message per stored event, as written to its streams. */
-export interface InventoryMessage {
-  streamId: string;
-  version: number;
-  type: string;
-  occurredAt: string;
-  data: Record<string, unknown>;
-}
