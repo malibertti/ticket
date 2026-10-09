@@ -5,6 +5,7 @@ import { Valkey } from 'iovalkey';
 import { EnvService } from '../env/env.service';
 import { DbEventStore } from './db.event-store';
 import { DbManifest } from './db.manifest';
+import { DbSeatMap } from './db.seat-map';
 
 @Module({
   providers: [
@@ -43,8 +44,9 @@ import { DbManifest } from './db.manifest';
     },
     DbEventStore,
     DbManifest,
+    DbSeatMap,
   ],
-  exports: [DbEventStore, DbManifest],
+  exports: [DbEventStore, DbManifest, DbSeatMap],
 })
 export class DbModule implements OnApplicationShutdown {
   constructor(

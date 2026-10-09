@@ -7,24 +7,24 @@ interface LogMethodOptions {
 }
 
 export function LogMethod(options: LogMethodOptions = {}): MethodDecorator {
-  const { logArgs = true, logResult = true, level = 'verbose' } = options;
+  const { logArgs = true, logResult = false, level = 'verbose' } = options;
 
   return (target, propertyKey, descriptor: PropertyDescriptor) => {
     const original = descriptor.value;
     const className = target.constructor.name;
-    const method = String(propertyKey);
+    const method = `${className}.${String(propertyKey)}`;
     const logger = new Logger(className);
 
     descriptor.value = function (...args: unknown[]) {
       const start = process.hrtime.bigint();
       const elapsedMs = () => Number(process.hrtime.bigint() - start) / 1e6;
 
-      logger[level]({ method, ...(logArgs && { args }) }, `${method} started`);
+      logger[level]({ method, ...(logArgs && { args }) }, `${method} STARTED`);
 
       const onSuccess = (result: unknown) => {
         logger[level](
           { method, durationMs: elapsedMs(), ...(logResult && { result }) },
-          `${method} completed`,
+          `${method} COMPLETED`,
         );
         return result;
       };
@@ -32,7 +32,7 @@ export function LogMethod(options: LogMethodOptions = {}): MethodDecorator {
       const onError = (err: unknown) => {
         logger[level](
           { method, durationMs: elapsedMs(), err },
-          `${method} failed`,
+          `${method} FAILED`,
         );
         throw err;
       };

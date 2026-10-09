@@ -75,6 +75,22 @@ export class DbEventStore {
     return events;
   }
 
+  /** Places taken per standing section of an event (sections nobody has held yet are absent). */
+  async readCounters(eventId: string): Promise<Record<string, number>> {
+    const res = await this.client.send(
+      new QueryCommand({
+        TableName: this.countersTable,
+        KeyConditionExpression: 'eventId = :e',
+        ExpressionAttributeValues: { ':e': eventId },
+        ConsistentRead: true,
+      }),
+    );
+
+    return Object.fromEntries(
+      (res.Items ?? []).map((item) => [item.section, item.taken as number]),
+    );
+  }
+
   async appendAtomically(
     requests: AppendRequest[],
     counters: CounterChange[] = [],

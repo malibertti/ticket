@@ -115,7 +115,7 @@ export class StreamPoller implements OnApplicationBootstrap, OnModuleDestroy {
     );
 
     for (const record of Records ?? []) {
-      this.logger.debug(record, 'publishStreamRecord');
+      this.logger.verbose(record, 'publishStreamRecord');
       try {
         await publishStreamRecord(this.producer, record as StreamRecordLike);
         state.lastSequence = record.dynamodb?.SequenceNumber;

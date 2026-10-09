@@ -54,14 +54,7 @@ export class KafkaProducer
     message: object,
     headers: IHeaders = currentTraceContext(),
   ): Promise<void> {
+    this.logger.verbose({ topic, key }, 'KafkaProducer.publish');
     return super.publish(topic, key, message, headers);
-  }
-
-  protected override async registerSchema(topic: Topic): Promise<number> {
-    const id = await super.registerSchema(topic);
-
-    this.logger.log({ topic, schemaId: id }, 'Schema registered');
-
-    return id;
   }
 }

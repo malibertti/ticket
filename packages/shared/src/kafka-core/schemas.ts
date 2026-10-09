@@ -78,3 +78,12 @@ export const SCHEMAS: Record<Topic, object> = {
   [TOPICS.catalogEvents]: catalogEventSchema,
   [TOPICS.inventoryEvents]: inventoryEventSchema,
 };
+
+/** What inventory publishes: one message per stored event, as written to its streams. */
+export interface InventoryMessage {
+  streamId: string;
+  version: number;
+  type: string;
+  occurredAt: string;
+  data: Record<string, unknown>;
+}

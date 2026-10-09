@@ -7,7 +7,6 @@ import {
 import { context, trace } from '@opentelemetry/api';
 import { Kafka, type KafkaMessage } from 'kafkajs';
 import { Topic } from '../kafka-core';
-import { LogMethod } from '../logger';
 import { traceContextFrom } from '../telemetry';
 
 /**
@@ -57,7 +56,7 @@ export abstract class KafkaConsumer<T>
           eachMessage: ({ message }) => this.consume(message),
         });
 
-        this.logger.log({ topic: this.topic }, 'Consuming');
+        this.logger.log({ topic: this.topic }, 'KafkaConsumer.started');
         return;
       } catch (err) {
         const delayMs = Math.min(30_000, 1_000 * 2 ** attempt);
@@ -70,13 +69,13 @@ export abstract class KafkaConsumer<T>
     }
   }
 
-  @LogMethod()
   private async consume(message: KafkaMessage) {
     const decoded = (await this.registry.decode(message.value!)) as T;
     const key = message.key?.toString() ?? '';
     const parent = traceContextFrom({
       traceparent: message.headers?.traceparent?.toString(),
     });
+    this.logger.verbose({ key, decoded }, 'KafkaConsumer.consume');
 
     await context.with(parent, () =>
       this.tracer.startActiveSpan(`${this.topic} process`, async (span) => {

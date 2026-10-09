@@ -2,7 +2,6 @@ import { SchemaRegistry } from '@kafkajs/confluent-schema-registry';
 import { Injectable } from '@nestjs/common';
 import type { Manifest } from '@org/catalog-schema/types';
 import { KafkaConsumer, TOPICS } from '@org/shared/kafka';
-import { LogMethod } from '@org/shared/logger';
 import { Kafka } from 'kafkajs';
 import { DbManifest } from './db/db.manifest';
 
@@ -26,7 +25,6 @@ export class CatalogConsumer extends KafkaConsumer<EventPublished> {
     super(kafka, registry, TOPICS.catalogEvents, 'inventory-manifest');
   }
 
-  @LogMethod()
   protected async handle(message: EventPublished): Promise<void> {
     await this.dbManifest.set({
       eventId: message.eventId,

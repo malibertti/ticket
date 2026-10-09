@@ -19,7 +19,15 @@ export class LoggerModule {
                 level: cs.get('LOG_LEVEL'),
                 base: { service },
                 transport: cs.get('LOG_PRETTY')
-                  ? { target: 'pino-pretty', options: { singleLine: true } }
+                  ? {
+                      target: 'pino-pretty',
+                      options: {
+                        singleLine: true,
+                        colorize: true,
+                        customColors: 'trace:yellow,info:gray',
+                        useOnlyCustomProps: false,
+                      },
+                    }
                   : undefined,
 
                 genReqId: (req, res) => {

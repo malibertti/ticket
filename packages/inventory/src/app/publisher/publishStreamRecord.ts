@@ -1,6 +1,10 @@
 import type { AttributeValue } from '@aws-sdk/client-dynamodb';
 import { unmarshall } from '@aws-sdk/util-dynamodb';
-import { KafkaPublisher, TOPICS } from '@org/shared/kafka-core';
+import {
+  InventoryMessage,
+  KafkaPublisher,
+  TOPICS,
+} from '@org/shared/kafka-core';
 
 /** The parts of a DynamoDB stream record we read; Lambda events and the Streams API share this shape. */
 export interface StreamRecordLike {
@@ -9,15 +13,6 @@ export interface StreamRecordLike {
     NewImage?: Record<string, AttributeValue>;
     SequenceNumber?: string;
   };
-}
-
-/** One stored event, as published to inventory.events.v1. */
-export interface InventoryMessage {
-  streamId: string;
-  version: number;
-  type: string;
-  occurredAt: string;
-  data: Record<string, unknown>;
 }
 
 /**

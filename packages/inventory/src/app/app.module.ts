@@ -9,6 +9,7 @@ import { EnvModule } from './env/env.module';
 import { EnvService } from './env/env.service';
 import { HoldsModule } from './holds/holds.module';
 import { PublisherModule } from './publisher/publisher.module';
+import { SeatMapModule } from './seat-map/seat-map.module';
 
 @Module({
   imports: [
@@ -31,6 +32,7 @@ import { PublisherModule } from './publisher/publisher.module';
     HealthModule,
     HoldsModule,
     PublisherModule,
+    SeatMapModule,
   ],
   controllers: [],
   providers: [CatalogConsumer],

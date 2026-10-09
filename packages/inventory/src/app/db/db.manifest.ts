@@ -5,7 +5,6 @@ import {
   manifestKey,
   manifestSchema,
 } from '@org/catalog-schema/types';
-import { LogMethod } from '@org/shared/logger';
 import { Valkey } from 'iovalkey';
 
 /** Reads the manifests catalog publishes to Valkey. */
@@ -16,7 +15,6 @@ export class DbManifest {
   constructor(private readonly valkey: Valkey) {}
 
   /** The event's manifest, or undefined when nothing is published (the event isn't on sale). */
-  @LogMethod()
   async get(eventId: string): Promise<Manifest | undefined> {
     return this.tracer.startActiveSpan('valkey get manifest', async (span) => {
       try {
@@ -30,7 +28,6 @@ export class DbManifest {
   }
 
   /** Stores the event's manifest, replacing any previous one. */
-  @LogMethod()
   async set(manifest: Manifest): Promise<void> {
     await this.tracer.startActiveSpan('valkey set manifest', async (span) => {
       try {

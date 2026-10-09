@@ -92,8 +92,9 @@ export class GatewayStack extends Stack {
       targetGroups: [this.inventoryTg],
       conditions: [
         ListenerCondition.pathPatterns([
-          '/v1/events/*/holds',
-          '/v1/events/*/holds/*',
+          '/v*/events/*/holds',
+          '/v*/events/*/holds/*',
+          '/v*/events/*/availability',
         ]),
       ],
     });

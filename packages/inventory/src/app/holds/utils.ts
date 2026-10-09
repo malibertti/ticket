@@ -23,3 +23,14 @@ export function seatStreamId(eventId: string, seatId: string): string {
 export function holdStreamId(eventId: string, holdId: string): string {
   return streamId('hold', eventId, holdId);
 }
+
+/** The event and seat of a seat stream id, or undefined for any other stream. */
+export function parseSeatStreamId(
+  streamId: string,
+): { eventId: string; seatId: string } | undefined {
+  const [kind, eventId, seatId, ...rest] = streamId.split('#');
+
+  return kind === 'seat' && eventId && seatId && !rest.length
+    ? { eventId, seatId }
+    : undefined;
+}
