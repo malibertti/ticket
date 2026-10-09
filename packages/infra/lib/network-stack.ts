@@ -7,6 +7,7 @@ import {
   SubnetType,
   Vpc,
 } from 'aws-cdk-lib/aws-ec2';
+import { Cluster } from 'aws-cdk-lib/aws-ecs';
 import { LogGroup, RetentionDays } from 'aws-cdk-lib/aws-logs';
 import { Construct } from 'constructs';
 
@@ -16,6 +17,7 @@ interface NetworkStackProps extends StackProps {
 
 export class NetworkStack extends Stack {
   readonly vpc: IVpc;
+  readonly ecsCluster: Cluster;
 
   constructor(scope: Construct, id: string, props: NetworkStackProps) {
     super(scope, id, props);
@@ -45,5 +47,7 @@ export class NetworkStack extends Stack {
         }),
       ),
     });
+
+    this.ecsCluster = new Cluster(this, 'Cluster', { vpc: this.vpc });
   }
 }

@@ -6,9 +6,9 @@ import {
 } from '@nestjs/common';
 import { context, trace } from '@opentelemetry/api';
 import { Kafka, type KafkaMessage } from 'kafkajs';
+import { Topic } from '../kafka-core';
 import { LogMethod } from '../logger';
 import { traceContextFrom } from '../telemetry';
-import { Topic } from './schemas';
 
 /**
  * Base class for a consumer: subscribes to one topic and calls handle() per message,

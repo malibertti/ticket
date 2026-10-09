@@ -1,6 +1,6 @@
 import type { AttributeValue } from '@aws-sdk/client-dynamodb';
 import { unmarshall } from '@aws-sdk/util-dynamodb';
-import { KafkaProducer, TOPICS } from '@org/shared/kafka';
+import { KafkaPublisher, TOPICS } from '@org/shared/kafka-core';
 
 /** The parts of a DynamoDB stream record we read; Lambda events and the Streams API share this shape. */
 export interface StreamRecordLike {
@@ -26,7 +26,7 @@ export interface InventoryMessage {
  * whatever wrote it. Only inserts are events: the event store never updates or deletes.
  */
 export async function publishStreamRecord(
-  producer: KafkaProducer,
+  producer: KafkaPublisher,
   record: StreamRecordLike,
 ): Promise<void> {
   const image = record.dynamodb?.NewImage;

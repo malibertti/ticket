@@ -1,10 +1,10 @@
 import { SchemaRegistry } from '@kafkajs/confluent-schema-registry';
-import { createKafka, KafkaConfig, KafkaProducer } from '@org/shared/kafka';
+import { createKafka, KafkaPublisher } from '@org/shared/kafka-core';
 import type { DynamoDBBatchResponse, DynamoDBStreamEvent } from 'aws-lambda';
 import { publishStreamRecord, StreamRecordLike } from './publishStreamRecord';
 
 /** Created once per Lambda container and reused across invocations. */
-let producer: KafkaProducer | undefined;
+let producer: KafkaPublisher | undefined;
 
 /**
  * DynamoDB Streams → inventory.events.v1. Records arrive in order per shard. On a failure, the
@@ -34,18 +34,18 @@ export async function handler(
   return { batchItemFailures: [] };
 }
 
-function getProducer(): KafkaProducer {
+function getProducer(): KafkaPublisher {
   if (!producer) {
-    const config: KafkaConfig = {
+    const kafka = createKafka({
       clientId: 'inventory-stream-publisher',
       brokers: process.env.KAFKA_BROKERS!.split(','),
-      schemaRegistryUrl: process.env.SCHEMA_REGISTRY_URL!,
       awsRegion: process.env.AWS_REGION,
-    };
+    });
+    const registry = new SchemaRegistry({
+      host: process.env.SCHEMA_REGISTRY_URL!,
+    });
 
-    const kafka = createKafka(config);
-    const registry = new SchemaRegistry({ host: config.schemaRegistryUrl });
-    producer = new KafkaProducer(kafka, registry, config);
+    producer = new KafkaPublisher(kafka, registry);
   }
 
   return producer;

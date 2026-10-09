@@ -1,5 +1,11 @@
 import { Duration, Fn, RemovalPolicy, Stack, StackProps } from 'aws-cdk-lib';
-import { IVpc, Port, SecurityGroup, SubnetType } from 'aws-cdk-lib/aws-ec2';
+import {
+  IConnectable,
+  IVpc,
+  Port,
+  SecurityGroup,
+  SubnetType,
+} from 'aws-cdk-lib/aws-ec2';
 import { Platform } from 'aws-cdk-lib/aws-ecr-assets';
 import {
   AwsLogDriver,
@@ -30,30 +36,24 @@ import { join } from 'node:path';
 
 interface KafkaStackProps extends StackProps {
   vpc: IVpc;
+  ecsCluster: Cluster;
 }
 
-/**
- * MSK Serverless (IAM auth), the topics, and a Confluent Schema Registry on ECS.
- * Apps join `clientSg` to reach both, and call `grantClient` on their role.
- */
 export class KafkaStack extends Stack {
-  readonly clientSg: SecurityGroup;
   readonly bootstrapBrokers: string;
   readonly schemaRegistryUrl: string;
+  private readonly clusterSg: SecurityGroup;
+  private readonly registrySg: SecurityGroup;
   private readonly clusterArn: string;
   private readonly clusterName = 'ticket';
 
   constructor(scope: Construct, id: string, props: KafkaStackProps) {
     super(scope, id, props);
 
-    // Network: anything in clientSg can reach the brokers and the registry
-    this.clientSg = new SecurityGroup(this, 'ClientSg', { vpc: props.vpc });
-
-    const clusterSg = new SecurityGroup(this, 'ClusterSg', {
+    this.clusterSg = new SecurityGroup(this, 'ClusterSg', {
       vpc: props.vpc,
       allowAllOutbound: false,
     });
-    clusterSg.addIngressRule(this.clientSg, Port.tcp(9098), 'Kafka (IAM)');
 
     // MSK Serverless
     const cluster = new CfnServerlessCluster(this, 'Msk', {
@@ -62,7 +62,7 @@ export class KafkaStack extends Stack {
       vpcConfigs: [
         {
           subnetIds: props.vpc.isolatedSubnets.map((s) => s.subnetId),
-          securityGroups: [clusterSg.securityGroupId],
+          securityGroups: [this.clusterSg.securityGroupId],
         },
       ],
     });
@@ -93,7 +93,6 @@ export class KafkaStack extends Stack {
       depsLockFilePath: join(__dirname, '../../../pnpm-lock.yaml'),
       vpc: props.vpc,
       vpcSubnets: { subnetType: SubnetType.PRIVATE_WITH_EGRESS },
-      securityGroups: [this.clientSg],
       timeout: Duration.minutes(2),
       logGroup: new LogGroup(this, 'TopicsFnLogs', {
         retention: RetentionDays.THREE_DAYS,
@@ -104,6 +103,8 @@ export class KafkaStack extends Stack {
         KAFKA_BROKERS: this.bootstrapBrokers,
       },
     });
+
+    topicsFn.connections.allowTo(this.clusterSg, Port.tcp(9098), 'Kafka (IAM)');
 
     Grant.addToPrincipal({
       grantee: topicsFn,
@@ -129,14 +130,12 @@ export class KafkaStack extends Stack {
       vpc: props.vpc,
     });
 
-    const registrySg = new SecurityGroup(this, 'RegistrySg', {
+    this.registrySg = new SecurityGroup(this, 'RegistrySg', {
       vpc: props.vpc,
     });
 
-    registrySg.addIngressRule(this.clientSg, Port.tcp(8081), 'Schema registry');
-
     const registryTask = new FargateTaskDefinition(this, 'RegistryTask', {
-      cpu: 256,
+      // cpu: 256,
       memoryLimitMiB: 1024,
       runtimePlatform: {
         cpuArchitecture: CpuArchitecture.ARM64,
@@ -175,14 +174,14 @@ export class KafkaStack extends Stack {
     this.grantClient(registryTask.taskRole);
 
     const registry = new FargateService(this, 'RegistryService', {
-      cluster: new Cluster(this, 'EcsCluster', { vpc: props.vpc }),
+      cluster: props.ecsCluster,
       taskDefinition: registryTask,
       desiredCount: 1,
       // one instance at a time: two with the same host name would confuse leader election
       minHealthyPercent: 0,
       maxHealthyPercent: 100,
       vpcSubnets: { subnetType: SubnetType.PRIVATE_WITH_EGRESS },
-      securityGroups: [registrySg, this.clientSg],
+      securityGroups: [this.registrySg],
       circuitBreaker: { rollback: true },
       cloudMapOptions: {
         name: 'schema-registry',
@@ -192,9 +191,20 @@ export class KafkaStack extends Stack {
       },
     });
 
+    registry.connections.allowTo(this.clusterSg, Port.tcp(9098), 'Kafka (IAM)');
     registry.node.addDependency(topics);
 
     this.schemaRegistryUrl = 'http://schema-registry.ticket.internal:8081';
+  }
+
+  /** Opens the brokers (9098) and the schema registry (8081) to this service or function only. */
+  allowClient(client: IConnectable) {
+    client.connections.allowTo(this.clusterSg, Port.tcp(9098), 'Kafka (IAM)');
+    client.connections.allowTo(
+      this.registrySg,
+      Port.tcp(8081),
+      'Schema registry',
+    );
   }
 
   /** Connect, produce (idempotent), consume and use consumer groups on this cluster. */

@@ -14,6 +14,7 @@ import {
   ApplicationLoadBalancer,
   ApplicationProtocol,
   ApplicationTargetGroup,
+  ListenerCondition,
   TargetType,
 } from 'aws-cdk-lib/aws-elasticloadbalancingv2';
 import { ARecord, HostedZone, RecordTarget } from 'aws-cdk-lib/aws-route53';
@@ -29,7 +30,8 @@ interface GatewayStackProps extends StackProps {
 }
 
 export class GatewayStack extends Stack {
-  readonly targetGroup: ApplicationTargetGroup;
+  readonly catalogTg: ApplicationTargetGroup;
+  readonly inventoryTg: ApplicationTargetGroup;
   readonly dist: Distribution;
 
   constructor(scope: Construct, id: string, props: GatewayStackProps) {
@@ -55,7 +57,20 @@ export class GatewayStack extends Stack {
       open: false,
     });
 
-    this.targetGroup = new ApplicationTargetGroup(this, 'ApiTargets', {
+    this.catalogTg = new ApplicationTargetGroup(this, 'CatalogTargets', {
+      vpc: props.vpc,
+      port: props.apiPort,
+      protocol: ApplicationProtocol.HTTP,
+      targetType: TargetType.IP,
+      deregistrationDelay: Duration.seconds(30),
+      healthCheck: {
+        path: '/health',
+        healthyHttpCodes: '200',
+        interval: Duration.seconds(30),
+      },
+    });
+
+    this.inventoryTg = new ApplicationTargetGroup(this, 'InventoryTargets', {
       vpc: props.vpc,
       port: props.apiPort,
       protocol: ApplicationProtocol.HTTP,
@@ -69,7 +84,18 @@ export class GatewayStack extends Stack {
     });
 
     listener.addTargetGroups('Default', {
-      targetGroups: [this.targetGroup],
+      targetGroups: [this.catalogTg],
+    });
+
+    listener.addTargetGroups('Inventory', {
+      priority: 10,
+      targetGroups: [this.inventoryTg],
+      conditions: [
+        ListenerCondition.pathPatterns([
+          '/v1/events/*/holds',
+          '/v1/events/*/holds/*',
+        ]),
+      ],
     });
 
     // WAF

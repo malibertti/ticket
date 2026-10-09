@@ -6,7 +6,8 @@ import {
   Provider,
 } from '@nestjs/common';
 import { Kafka } from 'kafkajs';
-import { createKafka, KAFKA_CONFIG, KafkaConfig } from './config';
+import { createKafka, KafkaConfig } from '../kafka-core';
+import { KAFKA_CONFIG } from './config';
 import { KafkaProducer } from './kafka.producer';
 
 @Module({})

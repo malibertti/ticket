@@ -5,6 +5,7 @@ import { AuthStack } from './auth-stack';
 import { CatalogStack } from './catalog-stack';
 import { DataStack } from './data-stack';
 import { GatewayStack } from './gateway-stack';
+import { InventoryStack } from './inventory.stack';
 import { KafkaStack } from './kafka.stack';
 import { MigrateStack } from './migrate-stack';
 import { NetworkStack } from './network-stack';
@@ -75,13 +76,15 @@ export class DevStage extends Stage {
     const kafka = new KafkaStack(this, 'KafkaStack', {
       env: props.env,
       vpc: network.vpc,
+      ecsCluster: network.ecsCluster,
     });
     Tags.of(kafka).add('component', 'kafka');
 
     const catalog = new CatalogStack(this, 'CatalogStack', {
       env: props.env,
       vpc: network.vpc,
-      targetGroup: gateway.targetGroup,
+      ecsCluster: network.ecsCluster,
+      targetGroup: gateway.catalogTg,
       port: props.apiPort,
       cors: props.adminDomain,
       db: data.db,
@@ -95,5 +98,20 @@ export class DevStage extends Stage {
     Tags.of(catalog).add('component', 'catalog');
 
     catalog.node.addDependency(migrate);
+
+    const inventory = new InventoryStack(this, 'InventoryStack', {
+      env: props.env,
+      vpc: network.vpc,
+      ecsCluster: network.ecsCluster,
+      targetGroup: gateway.inventoryTg,
+      port: props.apiPort,
+      cors: props.adminDomain,
+      poolId: auth.userPool.userPoolId,
+      poolClientId: auth.userPoolClient.userPoolClientId,
+      cacheSg: search.cacheSg,
+      cacheUrl: search.cacheUrl,
+      kafka,
+    });
+    Tags.of(inventory).add('component', 'inventory');
   }
 }

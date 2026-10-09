@@ -21,6 +21,7 @@ import { KafkaStack } from './kafka.stack';
 
 interface CatalogStackProps extends StackProps {
   vpc: IVpc;
+  ecsCluster: Cluster;
   targetGroup: ApplicationTargetGroup;
   db: DatabaseInstance;
   port: number;
@@ -39,12 +40,7 @@ export class CatalogStack extends Stack {
 
     const repoRoot = join(__dirname, '../../..');
 
-    // ECS
-    const cluster = new Cluster(this, 'Cluster', {
-      vpc: props.vpc,
-    });
-
-    const taskDefinition = new FargateTaskDefinition(this, 'CatalogTask', {
+    const taskDefinition = new FargateTaskDefinition(this, 'CatalogApiTask', {
       // cpu: 256,
       // memoryLimitMiB: 512,
       runtimePlatform: {
@@ -88,7 +84,7 @@ export class CatalogStack extends Stack {
       },
       logging: new AwsLogDriver({
         streamPrefix: 'api',
-        logGroup: new LogGroup(this, 'ApiLogGroup', {
+        logGroup: new LogGroup(this, 'CatalogApiLogGroup', {
           retention: RetentionDays.THREE_DAYS,
           removalPolicy: RemovalPolicy.DESTROY,
         }),
@@ -96,18 +92,14 @@ export class CatalogStack extends Stack {
     });
 
     // ECS Service
-    const service = new FargateService(this, 'ApiService', {
-      cluster,
+    const service = new FargateService(this, 'CatalogApiService', {
+      cluster: props.ecsCluster,
       taskDefinition,
       // desiredCount: 2,
       minHealthyPercent: 100,
       maxHealthyPercent: 200,
       vpcSubnets: { subnetType: SubnetType.PRIVATE_WITH_EGRESS },
       circuitBreaker: { rollback: true },
-      securityGroups: [
-        new SecurityGroup(this, 'ApiSg', { vpc: props.vpc }),
-        props.kafka.clientSg,
-      ],
     });
 
     service.connections.allowTo(props.db, Port.tcp(5432));
@@ -115,6 +107,7 @@ export class CatalogStack extends Stack {
     service.connections.allowTo(props.cacheSg, Port.tcp(6379));
 
     props.searchDomain.grantReadWrite(taskDefinition.taskRole);
+    props.kafka.allowClient(service);
     props.kafka.grantClient(taskDefinition.taskRole);
 
     const scaling = service.autoScaleTaskCount({
